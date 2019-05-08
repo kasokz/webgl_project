@@ -1,5 +1,6 @@
 const black = [0, 0, 0, 255];
 const white = [255, 255, 255, 255];
+const whiteOpaque = [255, 255, 255, 0];
 
 /**
  * Determines the colour of a pixel (x, y) to create
@@ -13,8 +14,13 @@ const white = [255, 255, 255, 255];
  * @param  {number} height       - The height of the canvas
  */
 export function checkerboard(data, x, y, width, height) {
+  let cellWidth = Math.floor(width / 8);
+  let cellHeight = Math.floor(height / 8);
   let color;
-  if (x % 2 === 0 && y % 2 === 0) {
+  if (
+    (Math.floor(x / cellWidth) % 2 !== 0 && Math.floor(y / cellHeight) % 2 === 0) ||
+    (Math.floor(x / cellWidth) % 2 === 0 && Math.floor(y / cellHeight) % 2 !== 0)
+  ) {
     color = white;
   } else {
     color = black;
@@ -40,7 +46,7 @@ export function circle(data, x, y, width, height, radius) {
   if (distance <= radius) {
     color = black;
   } else {
-    color = white;
+    color = whiteOpaque;
   }
   setColor(data, x, y, width, color);
 }
