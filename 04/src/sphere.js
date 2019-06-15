@@ -32,8 +32,13 @@ export default class Sphere {
       let x = Math.sqrt(this.radius * this.radius - y * y);
       let t1 = t - x;
       let t2 = t + x;
-      return true;
+      let firstHitDistance = Math.min(t1, t2);
+      return new Intersection(
+        firstHitDistance,
+        rayOrigin.add(rayDir.mul(firstHitDistance)),
+        this.center.sub(rayOrigin.add(rayDir.mul(firstHitDistance))).normalised()
+      );
     }
-    return false;
+    return null;
   }
 }

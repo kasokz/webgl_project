@@ -235,7 +235,7 @@ export default class Vector {
       this.x === other.x &&
       this.y === other.y &&
       this.z === other.z &&
-      (this.w === other.w || (this.w === undefined && other.w === undefined))
+      (this.w === other.w || !this.w || !other.w)
     );
   }
 

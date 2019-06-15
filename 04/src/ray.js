@@ -26,7 +26,7 @@ export default class Ray {
     let rayDirection = new Vector(
       xpos - (camera.width - 1) / 2,
       (camera.height - 1) / 2 - ypos,
-      -(camera.height / 2 / Math.tan(camera.alpha / 2)),
+      -1 * (camera.height / 2 / Math.tan(camera.alpha / 2)),
       1
     ).normalised();
     return new Ray(rayOrigin, rayDirection);
