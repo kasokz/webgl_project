@@ -18,7 +18,8 @@ export default class RayVisitor {
   constructor(context, width, height) {
     this.context = context;
     this.imageData = context.getImageData(0, 0, width, height);
-    // TODO  [exercise 7] setup
+    this.matrixStack = [];
+    this.modelMat = Matrix.identity();
   }
 
   /**
@@ -32,6 +33,8 @@ export default class RayVisitor {
     let data = this.imageData.data;
     data.fill(0);
     this.objects = [];
+    this.matrixStack = [];
+    this.modelMat = Matrix.identity();
 
     // build list of render objects
     rootNode.accept(this);
@@ -73,7 +76,11 @@ export default class RayVisitor {
    * @param  {Node} node - The node to visit
    */
   visitGroupNode(node) {
-    // TODO  [exercise 7] traverse the graph and build the model matrix
+    node.children.forEach(child => {
+      this.modelMat = this.modelMat.mul(node.matrix);
+      this.matrixStack.push(this.modelMat);
+      child.accept(this);
+    });
   }
 
   /**
@@ -81,9 +88,8 @@ export default class RayVisitor {
    * @param  {Node} node - The node to visit
    */
   visitSphereNode(node) {
-    let mat = Matrix.identity();
-    // TODO  [exercise 7] use the model matrix
-    this.objects.push(new Sphere(mat.mul(node.center), node.radius, node.color));
+    this.objects.push(new Sphere(this.modelMat.mul(node.center), node.radius, node.color));
+    this.modelMat = this.matrixStack.pop();
   }
 
   /**
@@ -91,14 +97,20 @@ export default class RayVisitor {
    * @param  {Node} node - The node to visit
    */
   visitAABoxNode(node) {
-    let mat = Matrix.identity();
-    // TODO  [exercise 7] use the model matrix
-    this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
+    this.objects.push(
+      new AABox(this.modelMat.mul(node.minPoint), this.modelMat.mul(node.maxPoint), node.color)
+    );
+    this.modelMat = this.matrixStack.pop();
   }
 
   /**
    * Visits a textured box node
    * @param  {Node} node - The node to visit
    */
-  visitTextureBoxNode(node) {}
+  visitTextureBoxNode(node) {
+    this.objects.push(
+      new AABox(this.modelMat.mul(node.minPoint), this.modelMat.mul(node.maxPoint), node.color)
+    );
+    this.modelMat = this.matrixStack.pop();
+  }
 }
