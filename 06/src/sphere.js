@@ -37,7 +37,7 @@ export default class Sphere {
       return new Intersection(
         firstHitDistance,
         rayOrigin.add(rayDir.mul(firstHitDistance)),
-        this.center.sub(rayOrigin.add(rayDir.mul(firstHitDistance))).normalised()
+        rayOrigin.add(rayDir.mul(firstHitDistance)).sub(this.center).normalised()
       );
     }
     return null;
