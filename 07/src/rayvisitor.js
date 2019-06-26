@@ -81,6 +81,7 @@ export default class RayVisitor {
       this.matrixStack.push(this.modelMat);
       child.accept(this);
     });
+    this.modelMat = this.matrixStack.pop();
   }
 
   /**
