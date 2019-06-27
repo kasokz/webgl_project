@@ -22,8 +22,8 @@ export default class Ray {
    * @return {Ray}             The resulting Ray
    */
   static makeRay(xpos, ypos, camera) {
-    let rayOrigin = camera.origin;
-    let rayDirection = new Vector(
+    const rayOrigin = camera.origin;
+    const rayDirection = new Vector(
       xpos - (camera.width - 1) / 2,
       (camera.height - 1) / 2 - ypos,
       -(camera.height / 2 / Math.tan(camera.alpha / 2)),

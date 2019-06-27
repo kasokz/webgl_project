@@ -10,7 +10,6 @@ export default class Vector {
    * @param  {number} w - The w component
    */
   constructor(x, y, z, w) {
-    this.vector = [];
     this.x = x;
     this.y = y;
     this.z = z;
@@ -22,7 +21,7 @@ export default class Vector {
    * @return {number} The x component of the vector
    */
   get x() {
-    return this.vector[0];
+    return this._x;
   }
 
   /**
@@ -30,7 +29,7 @@ export default class Vector {
    * @param  {number} val - The new value
    */
   set x(val) {
-    this.vector[0] = val;
+    this._x = val;
   }
 
   /**
@@ -54,7 +53,7 @@ export default class Vector {
    * @return {number} The y component of the vector
    */
   get y() {
-    return this.vector[1];
+    return this._y;
   }
 
   /**
@@ -62,7 +61,7 @@ export default class Vector {
    * @param  {number} val - The new value
    */
   set y(val) {
-    this.vector[1] = val;
+    this._y = val;
   }
 
   /**
@@ -86,7 +85,7 @@ export default class Vector {
    * @return {number} The z component of the vector
    */
   get z() {
-    return this.vector[2];
+    return this._z;
   }
 
   /**
@@ -94,7 +93,7 @@ export default class Vector {
    * @param  {number} val - The new value
    */
   set z(val) {
-    this.vector[2] = val;
+    this._z = val;
   }
 
   /**
@@ -118,7 +117,7 @@ export default class Vector {
    * @return {number} The w component of the vector
    */
   get w() {
-    return this.vector[3];
+    return this._w;
   }
 
   /**
@@ -126,7 +125,7 @@ export default class Vector {
    * @param  {number} val - The new value
    */
   set w(val) {
-    this.vector[3] = val;
+    this._w = val;
   }
 
   /**
@@ -151,7 +150,11 @@ export default class Vector {
    * @return {Vector}        The new vector;
    */
   add(other) {
-    return new Vector(this.x + other.x, this.y + other.y, this.z + other.z, this.w + other.w);
+    return new Vector(
+      this.x + other.x,
+      this.y + other.y,
+      this.z + other.z,
+      1);
   }
 
   /**
@@ -160,7 +163,11 @@ export default class Vector {
    * @return {Vector}        The new vector
    */
   sub(other) {
-    return new Vector(this.x - other.x, this.y - other.y, this.z - other.z, this.w - other.w);
+    return new Vector(
+      this.x - other.x,
+      this.y - other.y,
+      this.z - other.z,
+      1);
   }
 
   /**
@@ -169,16 +176,24 @@ export default class Vector {
    * @return {Vector}        The new vector
    */
   mul(other) {
-    return new Vector(this.x * other, this.y * other, this.z * other, this.w * other);
+    return new Vector(
+      this.x * other,
+      this.y * other,
+      this.z * other,
+      1);
   }
 
   /**
-   * Creates a new vector with the other vector multiplied elementwise
-   * @param {vector} other - The other vector to multiply elementwise
-   * @return {Vector}        The new vector
-   */
-  muli(other) {
-    return new Vector(this.x * other.x, this.y * other.y, this.z * other.z, this.w * other.w);
+ * Creates a new vector with the scalar multiplied
+ * @param {Vector} other - The vector to multiply
+ * @return {Vector}        The new vector
+ */
+  elementMul(other) {
+    return new Vector(
+      this.x * other.x,
+      this.y * other.y,
+      this.z * other.z,
+      1);
   }
 
   /**
@@ -187,7 +202,11 @@ export default class Vector {
    * @return {Vector}        The new vector
    */
   div(other) {
-    return new Vector(this.x / other, this.y / other, this.z / other, this.w / other);
+    return new Vector(
+      this.x / other,
+      this.y / other,
+      this.z / other,
+      1);
   }
 
   /**
@@ -196,7 +215,7 @@ export default class Vector {
    * @return {number}        The result of the dot product
    */
   dot(other) {
-    return this.x * other.x + this.y * other.y + this.z * other.z + this.w * other.w;
+    return this.x * other.x + this.y * other.y + this.z * other.z;
   }
 
   /**
@@ -207,9 +226,9 @@ export default class Vector {
   cross(other) {
     return new Vector(
       this.y * other.z - this.z * other.y,
-      this.z * other.w - this.w * other.z,
-      this.w * other.x - this.x * other.w,
-      this.x * other.y - this.y * other.x
+      this.z * other.x - this.x * other.z,
+      this.x * other.y - this.y * other.x,
+      1 //TODO: is this right?
     );
   }
 
@@ -218,7 +237,7 @@ export default class Vector {
    * @return {Array.<number>} An array representation.
    */
   valueOf() {
-    return this.vector;
+    return [this.x, this.y, this.z, this.w];
   }
 
   /**
@@ -226,12 +245,7 @@ export default class Vector {
    * @return {Vector} A vector with length 1
    */
   normalised() {
-    return new Vector(
-      this.x / this.length,
-      this.y / this.length,
-      this.z / this.length,
-      this.w / this.length
-    );
+    return this.div(this.length);
   }
 
   /**
@@ -240,12 +254,7 @@ export default class Vector {
    * @return {Boolean}        True if the vectors carry equal numbers. The fourth element may be both equivalent to undefined to still return true.
    */
   equals(other) {
-    return (
-      this.x === other.x &&
-      this.y === other.y &&
-      this.z === other.z &&
-      (this.w === other.w || !this.w || !other.w)
-    );
+    return (this.x === other.x && this.y === other.y && this.z === other.z && this.w === other.w)
   }
 
   /**
@@ -253,6 +262,6 @@ export default class Vector {
    * @return {number} The length of the vector
    */
   get length() {
-    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
+    return Math.sqrt(this._x * this._x + this._y * this._y + this._z * this._z);
   }
 }
