@@ -29,7 +29,9 @@ export default function phong(color, intersection, lightPositions, shininess, ca
       .add(specularPart);
   }, new Vector(0, 0, 0, 0));
   const ambientPart = ambient(color, kA);
-  return sum.add(ambientPart);
+  const result = sum.add(ambientPart);
+  result.a = 1.0;
+  return result;
 }
 
 const ambient = (color, kA) => {

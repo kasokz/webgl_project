@@ -18,8 +18,10 @@ export default class RayVisitor {
   constructor(context, width, height) {
     this.context = context;
     this.imageData = context.getImageData(0, 0, width, height);
-    this.matrixStack = [];
-    this.modelMat = Matrix.identity();
+    this.matrixStack = [Matrix.identity()];
+    this.matrixStack.top = function() {
+      return this[this.length - 1];
+    };
   }
 
   /**
@@ -33,8 +35,6 @@ export default class RayVisitor {
     let data = this.imageData.data;
     data.fill(0);
     this.objects = [];
-    this.matrixStack = [];
-    this.modelMat = Matrix.identity();
 
     // build list of render objects
     rootNode.accept(this);
@@ -76,12 +76,11 @@ export default class RayVisitor {
    * @param  {Node} node - The node to visit
    */
   visitGroupNode(node) {
+    this.matrixStack.push(this.matrixStack.top().mul(node.matrix));
     node.children.forEach(child => {
-      this.modelMat = this.modelMat.mul(node.matrix);
-      this.matrixStack.push(this.modelMat);
       child.accept(this);
     });
-    this.modelMat = this.matrixStack.pop();
+    this.matrixStack.pop();
   }
 
   /**
@@ -89,8 +88,8 @@ export default class RayVisitor {
    * @param  {Node} node - The node to visit
    */
   visitSphereNode(node) {
-    this.objects.push(new Sphere(this.modelMat.mul(node.center), node.radius, node.color));
-    this.modelMat = this.matrixStack.pop();
+    const mat = this.matrixStack.top();
+    this.objects.push(new Sphere(mat.mul(node.center), node.radius, node.color));
   }
 
   /**
@@ -98,10 +97,8 @@ export default class RayVisitor {
    * @param  {Node} node - The node to visit
    */
   visitAABoxNode(node) {
-    this.objects.push(
-      new AABox(this.modelMat.mul(node.minPoint), this.modelMat.mul(node.maxPoint), node.color)
-    );
-    this.modelMat = this.matrixStack.pop();
+    const mat = this.matrixStack.top();
+    this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
   }
 
   /**
@@ -109,9 +106,7 @@ export default class RayVisitor {
    * @param  {Node} node - The node to visit
    */
   visitTextureBoxNode(node) {
-    this.objects.push(
-      new AABox(this.modelMat.mul(node.minPoint), this.modelMat.mul(node.maxPoint), node.color)
-    );
-    this.modelMat = this.matrixStack.pop();
+    const mat = this.matrixStack.top();
+    this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
   }
 }

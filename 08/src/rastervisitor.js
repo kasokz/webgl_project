@@ -18,8 +18,10 @@ export class RasterVisitor {
    */
   constructor(context) {
     this.gl = context;
-    this.matrixStack = [];
-    this.modelMat = Matrix.identity();
+    this.matrixStack = [Matrix.identity()];
+    this.matrixStack.top = function() {
+      return this[this.length - 1];
+    };
   }
 
   /**
@@ -55,12 +57,11 @@ export class RasterVisitor {
    * @param  {Node} node - The node to visit
    */
   visitGroupNode(node) {
+    this.matrixStack.push(this.matrixStack.top().mul(node.matrix));
     node.children.forEach(child => {
-      this.modelMat = this.modelMat.mul(node.matrix);
-      this.matrixStack.push(this.modelMat);
       child.accept(this);
     });
-    this.modelMat = this.matrixStack.pop();
+    this.matrixStack.pop();
   }
 
   /**
@@ -70,8 +71,7 @@ export class RasterVisitor {
   visitSphereNode(node) {
     let shader = this.shader;
     shader.use();
-    shader.getUniformMatrix('M').set(this.modelMat);
-    this.modelMat = this.matrixStack.pop();
+    shader.getUniformMatrix('M').set(this.matrixStack.top());
 
     let V = shader.getUniformMatrix('V');
     if (V && this.lookat) {
@@ -93,8 +93,7 @@ export class RasterVisitor {
   visitAABoxNode(node) {
     let shader = this.shader;
     shader.use();
-    shader.getUniformMatrix('M').set(this.modelMat);
-    this.modelMat = this.matrixStack.pop();
+    shader.getUniformMatrix('M').set(this.matrixStack.top());
 
     let V = shader.getUniformMatrix('V');
     if (V && this.lookat) {
@@ -116,8 +115,7 @@ export class RasterVisitor {
     this.textureshader.use();
     let shader = this.textureshader;
 
-    shader.getUniformMatrix('M').set(this.modelMat);
-    this.modelMat = this.matrixStack.pop();
+    shader.getUniformMatrix('M').set(this.matrixStack.top());
 
     let P = shader.getUniformMatrix('P');
     if (P && this.perspective) {

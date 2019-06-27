@@ -14,9 +14,7 @@ window.addEventListener('load', () => {
   sg.add(gn1);
   const sphere1 = new SphereNode(new Vector(0, -0.2, 0, 1), 0.8, new Vector(0.8, 0.4, 0.1, 1));
   gn1.add(sphere1);
-  const gn2 = new GroupNode(
-    Matrix.scaling(new Vector(5, 5, 5)).mul(Matrix.translation(new Vector(-0.7, -0.4, 0)))
-  );
+  const gn2 = new GroupNode(Matrix.translation(new Vector(-0.7, -0.4, 0)));
   sg.add(gn2);
   const cube = new AABoxNode(
     new Vector(-1, -1, -1, 1),

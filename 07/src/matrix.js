@@ -43,11 +43,11 @@ export default class Matrix {
    * @return {Matrix}               The resulting translation matrix
    */
   static translation(translation) {
-    const result = this.identity();
-    result.setVal(0, 3, translation.x);
-    result.setVal(1, 3, translation.y);
-    result.setVal(2, 3, translation.z);
-    return result;
+    return new Matrix([
+      1, 0, 0, translation.x,
+      0, 1, 0, translation.y,
+      0, 0, 1, translation.z,
+      0, 0, 0, 1]);
   }
 
   /**
@@ -83,11 +83,12 @@ export default class Matrix {
    * @return {Matrix}         The resulting scaling matrix
    */
   static scaling(scale) {
-    const result = this.identity();
-    result.setVal(0, 0, scale.x);
-    result.setVal(1, 1, scale.y);
-    result.setVal(2, 2, scale.z);
-    return result;
+    return new Matrix([
+      scale.x, 0, 0, 0,
+      0, scale.y, 0, 0,
+      0, 0, scale.z, 0,
+      0, 0, 0, 1
+    ]);
   }
 
   /**
