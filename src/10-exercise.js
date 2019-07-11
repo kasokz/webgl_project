@@ -3,7 +3,8 @@ import Matrix from './matrix.js';
 import {
     GroupNode,
     SphereNode,
-    AABoxNode
+    AABoxNode,
+    TextureBoxNode
 } from './nodes.js';
 import {
     RasterVisitor,
@@ -21,12 +22,14 @@ window.addEventListener('load', () => {
     sg.add(gn1);
     const sphere = new SphereNode(new Vector(.5, -.8, 0, 1), 0.4, new Vector(.8, .4, .1, 1))
     gn1.add(sphere);
-    let gn2 = new GroupNode(Matrix.translation(new Vector(-.7, -0.4, .1)));
+    let gn2 = new GroupNode(
+        Matrix.rotation(new Vector(1, 0, 0), 20).mul(
+            Matrix.translation(new Vector(-.7, -0.4, .1))));
     sg.add(gn2);
-    const cube = new AABoxNode(
+    const cube = new TextureBoxNode(
         new Vector(-1, -1, -1, 1),
         new Vector(1, 1, 1, 1),
-        new Vector(1, 0, 0, 1)
+        "hci-logo.png"
     );
     gn2.add(cube);
 
@@ -49,7 +52,10 @@ window.addEventListener('load', () => {
         "perspective-phong-fragment-shader.glsl"
     );
     visitor.shader = shader;
-
+    const textureShader = new Shader(gl,
+        "texture-vertex-shader.glsl",
+        "texture-fragment-shader.glsl");
+    visitor.textureshader = textureShader;
 
     function animate(timestamp) {
         camera.eye = new Vector(
@@ -62,5 +68,6 @@ window.addEventListener('load', () => {
         window.requestAnimationFrame(animate);
     }
 
-    shader.load().then(x => window.requestAnimationFrame(animate));
+    Promise.all([shader.load(), textureShader.load()]).then(
+        x => window.requestAnimationFrame(animate));
 });

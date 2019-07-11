@@ -33,7 +33,7 @@ export class RasterVisitor {
   render(rootNode, camera, lightPositions) {
     // clear
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
+    this.gl.clearColor(.0,.0,.0,.1)
     this.setupCamera(camera);
 
     // traverse and render
