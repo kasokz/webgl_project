@@ -46,7 +46,7 @@ window.addEventListener('load', () => {
     };
     const shader = new Shader(gl,
         "perspective-vertex-shader.glsl",
-        "basic-fragment-shader.glsl"
+        "perspective-phong-fragment-shader.glsl"
     );
     visitor.shader = shader;
 

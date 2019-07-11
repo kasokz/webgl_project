@@ -22,7 +22,7 @@ vec4 diffuse() {
 vec4 specular() {
   vec3 l = normalize(lightPos - v_pos);
   vec3 r = reflect(-l,v_normal);
-  vec3 v = normalize(-v_pos+vec3(0.,0.,-1.));
+  vec3 v = normalize(-v_pos);
   return v_color * kS * pow(max(dot(r,v),0.0), shininess);
 }
 

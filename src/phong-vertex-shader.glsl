@@ -9,7 +9,6 @@ uniform mat4 N;
 varying vec3 v_normal;
 varying vec4 v_color;
 varying vec3 v_pos;
-varying vec3 v_light;
 
 void main(){
   gl_Position=V*M*vec4(a_position,1.);
