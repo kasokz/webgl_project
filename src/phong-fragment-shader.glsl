@@ -7,7 +7,7 @@ varying vec3 v_pos;
 const float kA = 0.6;
 const float kD = 0.8;
 const float kS = 0.8;
-const vec3 lightPos = vec3(.2,-1.,-1.);
+const vec3 lightPos = vec3(0.,0.,-10.);
 const float shininess=16.;
 
 vec4 ambient() {
@@ -15,14 +15,14 @@ vec4 ambient() {
 }
 
 vec4 diffuse() {
-  float lambertian = max(dot(normalize(lightPos - v_pos), normalize(v_normal)), .0);
+  float lambertian = max(dot(normalize(lightPos - v_pos), v_normal), .0);
   return v_color * kD * lambertian;
 }
 
 vec4 specular() {
   vec3 l = normalize(lightPos - v_pos);
-  vec3 r = reflect(-l,normalize(v_normal));
-  vec3 v = normalize(-v_pos);
+  vec3 r = reflect(-l,v_normal);
+  vec3 v = normalize(-v_pos+vec3(0.,0.,-1.));
   return v_color * kS * pow(max(dot(r,v),0.0), shininess);
 }
 

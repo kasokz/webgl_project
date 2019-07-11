@@ -84,7 +84,7 @@ export class RasterVisitor {
     let N = shader.getUniformMatrix('N');
     if (N && this.lookat) {
       const modelViewMat = this.lookat.mul(this.matrixStack.top());
-      N.set(this.lookat.invert().transpose());
+      N.set(modelViewMat.invert().transpose());
     }
     node.rastersphere.render(shader);
   }
