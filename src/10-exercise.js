@@ -53,8 +53,8 @@ window.addEventListener('load', () => {
     );
     visitor.shader = shader;
     const textureShader = new Shader(gl,
-        "texture-vertex-shader.glsl",
-        "texture-fragment-shader.glsl");
+        "perspective-texture-vertex-shader.glsl",
+        "perspective-texture-fragment-shader.glsl");
     visitor.textureshader = textureShader;
 
     function animate(timestamp) {
