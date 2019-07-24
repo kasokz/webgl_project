@@ -3,7 +3,6 @@ import Matrix from './matrix.js';
 import {
     GroupNode,
     SphereNode,
-    AABoxNode,
     TextureBoxNode
 } from './nodes.js';
 import {
@@ -11,6 +10,9 @@ import {
     RasterSetupVisitor
 } from './rastervisitor.js';
 import Shader from './shader.js';
+import {
+    RotationNode
+} from './animation-nodes.js';
 
 window.addEventListener('load', () => {
     const canvas = document.getElementById("rasteriser");
@@ -20,16 +22,16 @@ window.addEventListener('load', () => {
     const sg = new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2)));
     const gn1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
     sg.add(gn1);
+    const gn3 = new GroupNode(Matrix.identity());
+    gn1.add(gn3);
     const sphere = new SphereNode(new Vector(.5, -.8, 0, 1), 0.4, new Vector(.8, .4, .1, 1))
-    gn1.add(sphere);
-    let gn2 = new GroupNode(
-        Matrix.rotation(new Vector(1, 0, 0), 20).mul(
-            Matrix.translation(new Vector(-.7, -0.4, .1))));
+    gn3.add(sphere);
+    let gn2 = new GroupNode(Matrix.translation(new Vector(-.7, -0.4, .1)));
     sg.add(gn2);
     const cube = new TextureBoxNode(
         new Vector(-1, -1, -1, 1),
         new Vector(1, 1, 1, 1),
-        "hci-logo.png"
+        'hci-logo.png'
     );
     gn2.add(cube);
 
@@ -38,7 +40,8 @@ window.addEventListener('load', () => {
     setupVisitor.setup(sg);
 
     const visitor = new RasterVisitor(gl);
-    const camera = {
+
+    let camera = {
         eye: new Vector(-.5, .5, -1, 1),
         center: new Vector(0, 0, 0, 1),
         up: new Vector(0, 1, 0, 0),
@@ -47,27 +50,47 @@ window.addEventListener('load', () => {
         near: 0.1,
         far: 100
     };
-    const shader = new Shader(gl,
+
+    const phongShader = new Shader(gl,
         "perspective-vertex-shader.glsl",
         "perspective-phong-fragment-shader.glsl"
     );
-    visitor.shader = shader;
+    visitor.shader = phongShader;
     const textureShader = new Shader(gl,
         "perspective-texture-vertex-shader.glsl",
-        "texture-fragment-shader.glsl");
+        "texture-fragment-shader.glsl"
+    );
     visitor.textureshader = textureShader;
 
-    function animate(timestamp) {
-        camera.eye = new Vector(
-            Math.cos(timestamp / 1000),
-            0,
-            Math.sin(timestamp / 1000),
-            1
-        );
-        visitor.render(sg, camera);
-        window.requestAnimationFrame(animate);
+    let animationNodes = [
+        new RotationNode(gn2, new Vector(0, 0, 1))
+    ];
+
+    function simulate(deltaT) {
+        for (let animationNode of animationNodes) {
+            animationNode.simulate(deltaT);
+        }
     }
 
-    Promise.all([shader.load(), textureShader.load()]).then(
-        x => window.requestAnimationFrame(animate));
+    let lastTimestamp = performance.now();
+
+    function animate(timestamp) {
+        simulate(timestamp - lastTimestamp);
+        visitor.render(sg, camera);
+        lastTimestamp = timestamp;
+        window.requestAnimationFrame(animate);
+    }
+    Promise.all(
+        [phongShader.load(), textureShader.load()]
+    ).then(x =>
+        window.requestAnimationFrame(animate)
+    );
+
+    window.addEventListener('keydown', function (event) {
+        switch (event.key) {
+            case "ArrowUp":
+                animationNodes[0].toggleActive();
+                break;
+        }
+    });
 });
