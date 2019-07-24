@@ -34,7 +34,7 @@ export class RotationNode extends AnimationNode {
    */
   constructor(groupNode, axis) {
     super(groupNode);
-    this.angle = 1;
+    this.angle = 90;
     this.axis = axis;
   }
 

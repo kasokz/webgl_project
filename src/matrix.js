@@ -58,6 +58,7 @@ export default class Matrix {
    */
   static rotation(axis, angle) {
     const result = this.identity();
+    angle = angle * Math.PI / 180;
     if (axis.x === 1) {
       result.setVal(1, 1, Math.cos(angle));
       result.setVal(2, 1, Math.sin(angle));
