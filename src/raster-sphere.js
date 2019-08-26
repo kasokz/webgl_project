@@ -1,4 +1,4 @@
-import Vector from './vector.js';
+import Vector from './math/vector.js';
 
 /**
  * A class creating buffers for a sphere to render it with WebGL

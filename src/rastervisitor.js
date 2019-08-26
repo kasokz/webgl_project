@@ -1,8 +1,8 @@
 import RasterSphere from './raster-sphere.js';
 import RasterBox from './raster-box.js';
 import RasterTextureBox from './raster-texture-box.js';
-import Vector from './vector.js';
-import Matrix from './matrix.js';
+import Vector from './math/vector.js';
+import Matrix from './math/matrix.js';
 
 /**
  * Class representing a Visitor that uses Rasterisation to render a Scenegraph
