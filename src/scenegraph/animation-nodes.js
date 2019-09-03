@@ -1,4 +1,4 @@
-import Matrix from './math/matrix.js';
+import Matrix from '../../math/matrix.js';
 
 /**
  * Class representing an Animation
@@ -43,9 +43,6 @@ export class RotationNode extends AnimationNode {
    * @param  {number} deltaT - The time difference, the animation is advanced by
    */
   simulate(deltaT) {
-    // change the matrix of the attached
-    // group node to reflect a rotation
-    // TODO [exercise 11]
     if (this.active) {
       this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT/1000).mul(this.groupNode.matrix);
     }

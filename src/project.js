@@ -4,15 +4,15 @@ import {
   GroupNode,
   SphereNode,
   TextureBoxNode
-} from './nodes.js';
+} from './scenegraph/nodes.js';
 import {
   RasterVisitor,
   RasterSetupVisitor
-} from './rastervisitor.js';
-import Shader from './shader.js';
+} from './renderer/rasterizer/rastervisitor.js';
+import Shader from './shaders/shader.js';
 import {
   RotationNode
-} from './animation-nodes.js';
+} from './scenegraph/animation-nodes.js';
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById("rasteriser");

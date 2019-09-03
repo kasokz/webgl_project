@@ -1,4 +1,4 @@
-import Vector from './vector.js';
+import Vector from '../../math/vector.js';
 
 /**
  * Calculate the colour of an object at the intersection point according to the Phong Lighting model.

@@ -1,4 +1,4 @@
-import Vector from './vector.js';
+import Vector from '../../math/vector.js';
 
 /**
  * Class representing a ray

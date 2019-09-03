@@ -1,5 +1,5 @@
-import Intersection from './intersection.js';
-import Vector from './vector.js';
+import Intersection from '../../renderer/raytracer/intersection.js';
+import Vector from '../../math/vector.js';
 
 /**
  * A class representing a sphere

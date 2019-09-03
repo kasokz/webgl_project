@@ -1,5 +1,5 @@
-import Matrix from './matrix.js';
-import Sphere from './sphere.js';
+import Matrix from '../../math/matrix.js';
+import Sphere from '../../scenegraph/raytracer/sphere.js';
 import Intersection from './intersection.js';
 import Ray from './ray.js';
 import phong from './phong.js';
