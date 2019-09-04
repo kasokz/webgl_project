@@ -9,16 +9,49 @@ import {
   RasterVisitor,
   RasterSetupVisitor
 } from './renderer/rasterizer/rastervisitor.js';
+import RayVisitor from './renderer/raytracer/rayvisitor.js';
 import Shader from './shaders/shader.js';
 import {
   RotationNode
 } from './scenegraph/animation-nodes.js';
 
 const sceneGraph = new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2)));
+let rasterVisitor;
+let rasterSetupVisitor;
+let rayVisitor;
+let activeRenderer;
+
+const toggleRenderer = () => {
+  if (activeRenderer == rasterVisitor) {
+    activeRenderer = rayVisitor;
+  } else {
+    activeRenderer = rasterVisitor;
+    rasterSetupVisitor.setup(sceneGraph);
+  }
+}
 
 window.addEventListener('load', () => {
   const canvas = document.getElementById("rasteriser");
   const gl = canvas.getContext("webgl");
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
+  // document.getElementById('renderer_toggle').addEventListener('click', toggleRenderer);
+  document.getElementById('save_button').addEventListener('click', () => handleExport(sceneGraph));
+  document.getElementById('load_button').addEventListener('click', () => handleImport());
+
+  rasterVisitor = new RasterVisitor(gl);
+  rasterSetupVisitor = new RasterSetupVisitor(gl);
+  // rayVisitor = new RayVisitor(gl);
+
+  let camera = {
+    eye: new Vector(0, 0, -1, 1),
+    center: new Vector(0, 0, 0, 1),
+    up: new Vector(0, 1, 0, 0),
+    fovy: 90,
+    aspect: canvas.width / canvas.height,
+    near: 0.1,
+    far: 100
+  };
 
   // construct scene graph
   const gn1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
@@ -36,32 +69,21 @@ window.addEventListener('load', () => {
   );
   gn2.add(cube);
 
-  // setup for rendering
-  const setupVisitor = new RasterSetupVisitor(gl);
-  setupVisitor.setup(sceneGraph);
-
-  const visitor = new RasterVisitor(gl);
-
-  let camera = {
-    eye: new Vector(-.5, .5, -1, 1),
-    center: new Vector(0, 0, 0, 1),
-    up: new Vector(0, 1, 0, 0),
-    fovy: 60,
-    aspect: canvas.width / canvas.height,
-    near: 0.1,
-    far: 100
-  };
 
   const phongShader = new Shader(gl,
     "shaders/perspective-vertex-shader.glsl",
     "shaders/perspective-phong-fragment-shader.glsl"
   );
-  visitor.shader = phongShader;
+  rasterVisitor.shader = phongShader;
   const textureShader = new Shader(gl,
     "shaders/perspective-texture-vertex-shader.glsl",
-    "shaders/texture-fragment-shader.glsl"
+    "shaders/perspective-texture-fragment-shader.glsl"
   );
-  visitor.textureshader = textureShader;
+  rasterVisitor.textureshader = textureShader;
+
+  activeRenderer = rasterVisitor;
+  rasterSetupVisitor.setup(sceneGraph);
+
 
   let animationNodes = [
     new RotationNode(gn2, new Vector(0, 0, 1)),
@@ -78,7 +100,7 @@ window.addEventListener('load', () => {
 
   const animateFunc = (timestamp) => {
     simulate(timestamp - lastTimestamp);
-    visitor.render(sceneGraph, camera);
+    activeRenderer.render(sceneGraph, camera);
     lastTimestamp = timestamp;
     window.requestAnimationFrame(animateFunc);
   };
@@ -88,11 +110,29 @@ window.addEventListener('load', () => {
   ).then(x =>
     window.requestAnimationFrame(animateFunc)
   );
-
-  window.addEventListener('keydown', handleKeyEvent);
 });
 
-const handleKeyEvent = (event) => {
+const handleKeyDown = (event) => {
+  switch (event.code) {
+    case "ArrowUp":
+      animationNodes.forEach(node => node.toggleActive());
+      break;
+    case "KeyW":
+      break;
+    case "KeyA":
+      break;
+    case "KeyS":
+      break;
+    case "KeyD":
+      break;
+    case "KeyQ":
+      break;
+    case "KeyE":
+      break;
+  }
+}
+
+const handleKeyUp = (event) => {
   switch (event.code) {
     case "ArrowUp":
       animationNodes.forEach(node => node.toggleActive());

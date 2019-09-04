@@ -106,7 +106,7 @@ export class RasterVisitor {
     if (P && this.perspective) {
       P.set(this.perspective);
     }
-    node.rasterbox.render(this.shader);
+    node.rasterbox.render(shader);
   }
 
   /**
