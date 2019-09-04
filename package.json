@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "ICG exercise",
   "scripts": {
-    "start": "live-server src --mount=/bootstrap.css:node_modules/bootstrap/dist/css/bootstrap.css",
+    "start": "live-server src --open=project.html --mount=/bootstrap.css:node_modules/bootstrap/dist/css/bootstrap.css",
     "test": "jest"
   },
   "license": "UNLICENSED",

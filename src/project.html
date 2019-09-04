@@ -5,16 +5,23 @@
   <meta charset="utf-8" />
   <title>ICG-11 Animation</title>
   <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" href="hci-logo.png">
   <script src="project.js" type="module"></script>
 </head>
 
 <body>
-
-  <div class="container text-center">
-    <h1>ICG CS Master Project</h1>
-    <hr>
-    <canvas id="rasteriser" width="800" height="800"></canvas>
+  <div class="main-container">
+    <div id="header">
+      <h1>ICG Master Project</h1>
+      <div class="header__button-group">
+        <button id="renderer_toggle" type="button" class="btn btn-primary">Toggle Renderer</button>
+        <button id="save_button" type="button" class="btn btn-primary">Save Scene</button>
+        <button id="load_button" type="button" class="btn btn-primary">Load Scene</button>
+      </div>
+    </div>
+    <div id="sidebar"></div>
+    <canvas id="rasteriser" width="1920" height="1080"></canvas>
   </div>
 </body>
 

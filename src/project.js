@@ -14,20 +14,21 @@ import {
   RotationNode
 } from './scenegraph/animation-nodes.js';
 
+const sceneGraph = new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2)));
+
 window.addEventListener('load', () => {
   const canvas = document.getElementById("rasteriser");
   const gl = canvas.getContext("webgl");
 
   // construct scene graph
-  const sg = new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2)));
   const gn1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
-  sg.add(gn1);
+  sceneGraph.add(gn1);
   const gn3 = new GroupNode(Matrix.identity());
   gn1.add(gn3);
   const sphere = new SphereNode(new Vector(.5, -.8, 0, 1), 0.4, new Vector(.8, .4, .1, 1))
   gn3.add(sphere);
   let gn2 = new GroupNode(Matrix.translation(new Vector(-.7, -0.4, .1)));
-  sg.add(gn2);
+  sceneGraph.add(gn2);
   const cube = new TextureBoxNode(
     new Vector(-1, -1, -1, 1),
     new Vector(1, 1, 1, 1),
@@ -37,7 +38,7 @@ window.addEventListener('load', () => {
 
   // setup for rendering
   const setupVisitor = new RasterSetupVisitor(gl);
-  setupVisitor.setup(sg);
+  setupVisitor.setup(sceneGraph);
 
   const visitor = new RasterVisitor(gl);
 
@@ -64,7 +65,7 @@ window.addEventListener('load', () => {
 
   let animationNodes = [
     new RotationNode(gn2, new Vector(0, 0, 1)),
-    new RotationNode(gn3, new Vector(0, 1, 0))
+    new RotationNode(gn2, new Vector(0, 1, 0))
   ];
 
   function simulate(deltaT) {
@@ -75,35 +76,38 @@ window.addEventListener('load', () => {
 
   let lastTimestamp = performance.now();
 
-  function animate(timestamp) {
+  const animateFunc = (timestamp) => {
     simulate(timestamp - lastTimestamp);
-    visitor.render(sg, camera);
+    visitor.render(sceneGraph, camera);
     lastTimestamp = timestamp;
-    window.requestAnimationFrame(animate);
-  }
+    window.requestAnimationFrame(animateFunc);
+  };
+
   Promise.all(
     [phongShader.load(), textureShader.load()]
   ).then(x =>
-    window.requestAnimationFrame(animate)
+    window.requestAnimationFrame(animateFunc)
   );
 
-  window.addEventListener('keydown', function (event) {
-    switch (event.code) {
-      case "ArrowUp":
-        animationNodes.forEach(node => node.toggleActive());
-        break;
-      case "KeyW":
-        break;
-      case "KeyA":
-        break;
-      case "KeyS":
-        break;
-      case "KeyD":
-        break;
-      case "KeyQ":
-        break;
-      case "KeyE":
-        break;
-    }
-  });
+  window.addEventListener('keydown', handleKeyEvent);
 });
+
+const handleKeyEvent = (event) => {
+  switch (event.code) {
+    case "ArrowUp":
+      animationNodes.forEach(node => node.toggleActive());
+      break;
+    case "KeyW":
+      break;
+    case "KeyA":
+      break;
+    case "KeyS":
+      break;
+    case "KeyD":
+      break;
+    case "KeyQ":
+      break;
+    case "KeyE":
+      break;
+  }
+}
