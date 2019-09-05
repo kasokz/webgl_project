@@ -19,7 +19,7 @@ export default class RayVisitor {
     this.context = context;
     this.imageData = context.getImageData(0, 0, width, height);
     this.matrixStack = [Matrix.identity()];
-    this.matrixStack.top = function() {
+    this.matrixStack.top = function () {
       return this[this.length - 1];
     };
   }

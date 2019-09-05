@@ -1,3 +1,5 @@
-export const handleExport = (sceneGraph) => {
+const handleExport = (sceneGraph) => {
 
 }
+
+export default handleExport;

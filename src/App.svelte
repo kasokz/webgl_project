@@ -16,8 +16,13 @@
   import RayVisitor from "./renderer/raytracer/rayvisitor.js";
   import Shader from "./shaders/shader.js";
   import { RotationNode } from "./scenegraph/animation-nodes.js";
+  import handleExport from "./io/export.js";
+  import handleImport from "./io/import.js";
 
   const sceneGraph = new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2)));
+  let rasterCanvas;
+  let rayCanvas;
+  let rasterise = true;
   let rasterVisitor;
   let rasterSetupVisitor;
   let rayVisitor;
@@ -25,6 +30,14 @@
 
   const toggleRenderer = () => {
     if (activeRenderer == rasterVisitor) {
+      if (!rayVisitor) {
+        const rayContext = rayCanvas.getContext("2d");
+        rayVisitor = new RayVisitor(
+          rayContext,
+          canvas.clientWidth,
+          canvas.clientHeight
+        );
+      }
       activeRenderer = rayVisitor;
     } else {
       activeRenderer = rasterVisitor;
@@ -33,28 +46,22 @@
   };
 
   onMount(() => {
-    const canvas = document.getElementById("rasteriser");
-    const gl = canvas.getContext("webgl");
+    console.log(rasterCanvas);
+    const webgl = rasterCanvas.getContext("webgl");
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-    // document.getElementById('renderer_toggle').addEventListener('click', toggleRenderer);
-    document
-      .getElementById("save_button")
-      .addEventListener("click", () => handleExport(sceneGraph));
-    document
-      .getElementById("load_button")
-      .addEventListener("click", () => handleImport());
 
-    rasterVisitor = new RasterVisitor(gl);
-    rasterSetupVisitor = new RasterSetupVisitor(gl);
-    // rayVisitor = new RayVisitor(gl);
+    // document.getElementById('renderer_toggle').addEventListener('click', toggleRenderer);
+    rasterVisitor = new RasterVisitor(webgl);
+    rasterSetupVisitor = new RasterSetupVisitor(webgl);
 
     let camera = {
       eye: new Vector(0, 0, -1, 1),
       center: new Vector(0, 0, 0, 1),
       up: new Vector(0, 1, 0, 0),
       fovy: 90,
-      aspect: canvas.width / canvas.height,
+      aspect: rasterCanvas.width / rasterCanvas.height,
       near: 0.1,
       far: 100
     };
@@ -79,10 +86,10 @@
     );
     gn2.add(cube);
 
-    const phongShader = new Shader(gl, vertexShader, phongFragmentShader);
+    const phongShader = new Shader(webgl, vertexShader, phongFragmentShader);
     rasterVisitor.shader = phongShader;
     const textureShader = new Shader(
-      gl,
+      webgl,
       textureVertexShader,
       textureFragmentShader
     );
@@ -178,7 +185,7 @@
     background-color: rgba(255, 166, 0, 0.904);
   }
 
-  #rasteriser {
+  canvas {
     width: 100%;
     height: 100%;
     grid-area: content;
@@ -197,14 +204,26 @@
       <button id="renderer_toggle" type="button" class="btn btn-primary">
         Toggle Renderer
       </button>
-      <button id="save_button" type="button" class="btn btn-primary">
+      <button
+        id="save_button"
+        type="button"
+        class="btn btn-primary"
+        on:click={() => handleExport(sceneGraph)}>
         Save Scene
       </button>
-      <button id="load_button" type="button" class="btn btn-primary">
+      <button
+        id="load_button"
+        type="button"
+        class="btn btn-primary"
+        on:click={() => handleImport()}>
         Load Scene
       </button>
     </div>
   </div>
   <div id="sidebar" />
-  <canvas id="rasteriser" width="1920" height="1080" />
+  {#if rasterise}
+    <canvas bind:this={rasterCanvas} width="1920" height="1080" />
+  {:else}
+    <canvas bind:this={rayCanvas} width="1920" height="1080" />
+  {/if}
 </div>

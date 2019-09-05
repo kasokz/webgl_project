@@ -1,3 +1,5 @@
-export const handleImport = (file) => {
+const handleImport = (file) => {
 
 }
+
+export default handleImport;
