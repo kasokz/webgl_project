@@ -1,1 +1,7 @@
 node_modules
+
+public/
+!public/index.html
+!public/hci-logo.png
+!public/global.css
+!public/favicon.png

@@ -1,4 +1,4 @@
-import Matrix from '../../math/matrix.js';
+import Matrix from '../math/matrix.js';
 
 /**
  * Class representing an Animation

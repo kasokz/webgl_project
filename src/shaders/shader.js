@@ -62,23 +62,19 @@ export default class Shader {
    * @param  {string} id - The id of the shader script node
    * @return {Object}      The resulting shader part
    */
-  async getShader(gl, filename, type) {
-    const source = fetch(filename).then(response => response.text());
+  getShader(gl, filename, type) {
+    const shader = gl.createShader(type);
+    // Send the source to the shader object
+    gl.shaderSource(shader, filename);
+    // Compile the shader program
+    gl.compileShader(shader);
 
-    return source.then(s => {
-      const shader = gl.createShader(type);
-      // Send the source to the shader object
-      gl.shaderSource(shader, s);
-      // Compile the shader program
-      gl.compileShader(shader);
-
-      // See if it compiled successfully
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        alert("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
-        return null;
-      }
-      return shader;
-    });
+    // See if it compiled successfully
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      alert("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
+      return null;
+    }
+    return shader;
   }
 
   /**
