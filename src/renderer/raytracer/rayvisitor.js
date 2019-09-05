@@ -44,8 +44,7 @@ export default class RayVisitor {
     const height = this.imageData.height;
     for (let x = 0; x < width; x++) {
       for (let y = 0; y < height; y++) {
-        const ray = Ray.makeRay(x, y, camera);
-
+        const ray = Ray.makeRay(x, y, camera, width, height);
         let minIntersection = new Intersection();
         let minObj = null;
         for (let shape of this.objects) {
@@ -59,7 +58,7 @@ export default class RayVisitor {
           if (!minObj.color) {
             setPixel(x, y, new Vector(0, 0, 0, 1));
           } else {
-            let color = phong(minObj.color, minIntersection, lightPositions, 10, camera.origin);
+            let color = phong(minObj.color, minIntersection, lightPositions, 10, camera.eye);
             data[4 * (width * y + x) + 0] = color.r * 255;
             data[4 * (width * y + x) + 1] = color.g * 255;
             data[4 * (width * y + x) + 2] = color.b * 255;
@@ -98,7 +97,8 @@ export default class RayVisitor {
    */
   visitAABoxNode(node) {
     const mat = this.matrixStack.top();
-    this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
+    // NOOP: not supported
+    // this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
   }
 
   /**
@@ -107,6 +107,7 @@ export default class RayVisitor {
    */
   visitTextureBoxNode(node) {
     const mat = this.matrixStack.top();
-    this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
+    // NOOP: not supported
+    // this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
   }
 }

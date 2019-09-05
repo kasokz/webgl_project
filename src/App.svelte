@@ -1,10 +1,12 @@
 <script>
-  import { onMount } from "svelte";
+  import SceneGraph from "./components/SceneGraph.svelte";
+  import { onMount, tick } from "svelte";
+  import { sceneGraph } from "./state/stores.js";
 
-  import vertexShader from "./shaders/perspective-vertex-shader.glsl";
-  import phongFragmentShader from "./shaders/perspective-phong-fragment-shader.glsl";
-  import textureVertexShader from "./shaders/perspective-texture-vertex-shader.glsl";
-  import textureFragmentShader from "./shaders/perspective-texture-fragment-shader.glsl";
+  import vertexShader from "./shaders/raster-vertex-shader.glsl";
+  import phongFragmentShader from "./shaders/raster-phong-fragment-shader.glsl";
+  import textureVertexShader from "./shaders/raster-texture-vertex-shader.glsl";
+  import textureFragmentShader from "./shaders/raster-texture-fragment-shader.glsl";
 
   import Vector from "./math/vector.js";
   import Matrix from "./math/matrix.js";
@@ -19,40 +21,17 @@
   import handleExport from "./io/export.js";
   import handleImport from "./io/import.js";
 
-  const sceneGraph = new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2)));
-  let rasterCanvas;
-  let rayCanvas;
-  let rasterise = true;
+  let canvas;
+  let activeRenderer;
   let rasterVisitor;
   let rasterSetupVisitor;
-  let rayVisitor;
-  let activeRenderer;
+  let animationNodes = [];
+  let lightPositions = [new Vector(1, 1, -1, 1)];
 
-  const toggleRenderer = () => {
-    if (activeRenderer == rasterVisitor) {
-      if (!rayVisitor) {
-        const rayContext = rayCanvas.getContext("2d");
-        rayVisitor = new RayVisitor(
-          rayContext,
-          canvas.clientWidth,
-          canvas.clientHeight
-        );
-      }
-      activeRenderer = rayVisitor;
-    } else {
-      activeRenderer = rasterVisitor;
-      rasterSetupVisitor.setup(sceneGraph);
-    }
-  };
+  const toggleRenderer = () => {};
 
   onMount(() => {
-    console.log(rasterCanvas);
-    const webgl = rasterCanvas.getContext("webgl");
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    // document.getElementById('renderer_toggle').addEventListener('click', toggleRenderer);
+    const webgl = canvas.getContext("webgl");
     rasterVisitor = new RasterVisitor(webgl);
     rasterSetupVisitor = new RasterSetupVisitor(webgl);
 
@@ -61,14 +40,14 @@
       center: new Vector(0, 0, 0, 1),
       up: new Vector(0, 1, 0, 0),
       fovy: 90,
-      aspect: rasterCanvas.width / rasterCanvas.height,
+      aspect: canvas.width / canvas.height,
       near: 0.1,
       far: 100
     };
 
-    // construct scene graph
+    // initialize scene graph
+    sceneGraph.set(new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2))));
     const gn1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
-    sceneGraph.add(gn1);
     const gn3 = new GroupNode(Matrix.identity());
     gn1.add(gn3);
     const sphere = new SphereNode(
@@ -77,14 +56,15 @@
       new Vector(0.8, 0.4, 0.1, 1)
     );
     gn3.add(sphere);
+    sceneGraph.add(gn1);
     let gn2 = new GroupNode(Matrix.translation(new Vector(-0.7, -0.4, 0.1)));
-    sceneGraph.add(gn2);
     const cube = new TextureBoxNode(
       new Vector(-1, -1, -1, 1),
       new Vector(1, 1, 1, 1),
       "hci-logo.png"
     );
     gn2.add(cube);
+    sceneGraph.add(gn2);
 
     const phongShader = new Shader(webgl, vertexShader, phongFragmentShader);
     rasterVisitor.shader = phongShader;
@@ -96,9 +76,9 @@
     rasterVisitor.textureshader = textureShader;
 
     activeRenderer = rasterVisitor;
-    rasterSetupVisitor.setup(sceneGraph);
+    rasterSetupVisitor.setup($sceneGraph);
 
-    let animationNodes = [
+    animationNodes = [
       new RotationNode(gn2, new Vector(0, 0, 1)),
       new RotationNode(gn2, new Vector(0, 1, 0))
     ];
@@ -113,12 +93,12 @@
 
     const animateFunc = timestamp => {
       simulate(timestamp - lastTimestamp);
-      activeRenderer.render(sceneGraph, camera);
+      activeRenderer.render($sceneGraph, camera, lightPositions);
       lastTimestamp = timestamp;
       window.requestAnimationFrame(animateFunc);
     };
 
-    Promise.all([phongShader.load(), textureShader.load()]).then(x =>
+    Promise.all([phongShader.load(), textureShader.load()]).then(_ =>
       window.requestAnimationFrame(animateFunc)
     );
   });
@@ -197,11 +177,16 @@
   }
 </style>
 
+<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 <div class="main-container">
   <div id="header">
     <h1>ICG Master Project</h1>
     <div class="header__button-group">
-      <button id="renderer_toggle" type="button" class="btn btn-primary">
+      <button
+        id="renderer_toggle"
+        type="button"
+        class="btn btn-primary"
+        on:click={toggleRenderer}>
         Toggle Renderer
       </button>
       <button
@@ -220,10 +205,8 @@
       </button>
     </div>
   </div>
-  <div id="sidebar" />
-  {#if rasterise}
-    <canvas bind:this={rasterCanvas} width="1920" height="1080" />
-  {:else}
-    <canvas bind:this={rayCanvas} width="1920" height="1080" />
-  {/if}
+  <div id="sidebar">
+    <SceneGraph />
+  </div>
+  <canvas bind:this={canvas} width="1920" height="1080" />
 </div>
