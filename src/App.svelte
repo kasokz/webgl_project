@@ -17,7 +17,7 @@
   } from "./renderer/rasterizer/rastervisitor.js";
   import RayVisitor from "./renderer/raytracer/rayvisitor.js";
   import Shader from "./shaders/shader.js";
-  import { RotationNode } from "./scenegraph/animation-nodes.js";
+  import { RotationNode, BouncingNode } from "./scenegraph/animation-nodes.js";
   import handleExport from "./io/export.js";
   import handleImport from "./io/import.js";
 
@@ -81,7 +81,7 @@
     animationNodes = [
       new RotationNode(gn2, new Vector(0, 0, 1)),
       new RotationNode(gn2, new Vector(0, 1, 0)),
-      new RotationNode(gn3, new Vector(1, 1, 0))
+      new BouncingNode(gn3, new Vector(0, 1, 0), 1)
     ];
 
     function simulate(deltaT) {

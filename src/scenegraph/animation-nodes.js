@@ -59,11 +59,13 @@ export class BouncingNode extends AnimationNode {
    * Creates a new RotationNode
    * @param {GroupNode} groupNode - The group node to attach to
    * @param {Vector} axis         - The axis to rotate around
+   * @param {number} distance     - The distance to move on the axis
    */
   constructor(groupNode, axis, distance) {
     super(groupNode);
-    this.distance = 90;
+    this.distance = distance;
     this.axis = axis;
+    this.value = 0;
   }
 
   /**
@@ -72,7 +74,8 @@ export class BouncingNode extends AnimationNode {
    */
   simulate(deltaT) {
     if (this.active) {
-      this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+      this.value += deltaT / 100;
+      this.groupNode.matrix = Matrix.translation(this.axis.mul(Math.sin(this.value) / 5 * this.distance)).mul(this.groupNode.matrix);
     }
   }
 
