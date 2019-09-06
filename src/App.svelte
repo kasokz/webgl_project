@@ -1,7 +1,7 @@
 <script>
   import SceneGraph from "./components/SceneGraph.svelte";
   import { onMount, tick } from "svelte";
-  import { sceneGraph } from "./state/stores.js";
+  import { sceneGraph, animationNodes } from "./state/stores.js";
 
   import vertexShader from "./shaders/raster-vertex-shader.glsl";
   import phongFragmentShader from "./shaders/raster-phong-fragment-shader.glsl";
@@ -25,7 +25,6 @@
   let activeRenderer;
   let rasterVisitor;
   let rasterSetupVisitor;
-  let animationNodes = [];
   let lightPositions = [new Vector(1, 1, -1, 1)];
 
   const toggleRenderer = () => {};
@@ -78,14 +77,12 @@
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
 
-    animationNodes = [
-      new RotationNode(gn2, new Vector(0, 0, 1)),
-      new RotationNode(gn2, new Vector(0, 1, 0)),
-      new BouncingNode(gn3, new Vector(0, 1, 0), 1)
-    ];
+    animationNodes.add(new RotationNode(gn2, new Vector(0, 0, 1)));
+    animationNodes.add(new RotationNode(gn2, new Vector(0, 1, 0)));
+    animationNodes.add(new BouncingNode(gn3, new Vector(0, 1, 0), 0.7));
 
     function simulate(deltaT) {
-      for (let animationNode of animationNodes) {
+      for (let animationNode of $animationNodes) {
         animationNode.simulate(deltaT);
       }
     }
@@ -107,7 +104,7 @@
   const handleKeyDown = event => {
     switch (event.code) {
       case "ArrowUp":
-        animationNodes.forEach(node => node.toggleActive());
+        $animationNodes.forEach(node => node.toggleActive());
         break;
       case "KeyW":
         break;

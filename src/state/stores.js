@@ -13,4 +13,16 @@ const createSceneGraph = () => {
   }
 }
 
+const createAnimationNodes = () => {
+  const { subscribe, update } = writable([]);
+
+  return {
+    subscribe,
+    add: (node) => update(nodes => [...nodes, node]),
+    remove: (node) => update(nodes => nodes.filter((_, i) => i !== nodes.indexOf(node))),
+  }
+}
+
+export const selectedNode = writable({});
 export const sceneGraph = createSceneGraph();
+export const animationNodes = createAnimationNodes();
