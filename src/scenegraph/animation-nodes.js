@@ -74,7 +74,7 @@ export class BouncingNode extends AnimationNode {
    */
   simulate(deltaT) {
     if (this.active) {
-      this.value += deltaT / 100;
+      this.value += deltaT / 200;
       this.groupNode.matrix = Matrix.translation(this.axis.mul(Math.sin(this.value) / 10 * this.distance)).mul(this.groupNode.matrix);
     }
   }

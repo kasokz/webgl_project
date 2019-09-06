@@ -6,20 +6,20 @@ export default class Shader {
   /**
    * Creates a shader
    * @param {WebGLContext} gl   - The 3D context
-   * @param {string} vsId - The id of the vertex shader script node
-   * @param {string} fsId - The id of the fragment shader script node
+   * @param {string} vertexShaderSource - The id of the vertex shader script node
+   * @param {string} fragmentShaderSource - The id of the fragment shader script node
    */
-  constructor(gl, vsId, fsId) {
-    this.vsFilename = vsId;
-    this.fsFilename = fsId;
+  constructor(gl, vertexShaderSource, fragmentShaderSource) {
+    this.vertexShaderSource = vertexShaderSource;
+    this.fragmentShaderSource = fragmentShaderSource;
 
     this.gl = gl;
   }
 
   async load() {
     let gl = this.gl;
-    const vertexShader = this.getShader(gl, this.vsFilename, gl.VERTEX_SHADER);
-    const fragmentShader = this.getShader(gl, this.fsFilename, gl.FRAGMENT_SHADER);
+    const vertexShader = this.getShader(gl, this.vertexShaderSource, gl.VERTEX_SHADER);
+    const fragmentShader = this.getShader(gl, this.fragmentShaderSource, gl.FRAGMENT_SHADER);
 
     return Promise.all([vertexShader, fragmentShader]).then(shaderParts => {
       // Create the shader program

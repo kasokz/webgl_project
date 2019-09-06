@@ -4,28 +4,29 @@ varying vec4 v_color;
 varying vec3 v_normal;
 varying vec3 v_pos;
 
-const float kA = 0.6;
-const float kD = 0.8;
-const float kS = 0.8;
+varying float v_kA;
+varying float v_kD;
+varying float v_kS;
+varying float v_shininess;
 const vec3 lightPos = vec3(.2,.6,-.5);
-const float shininess=10.;
 
 vec4 ambient() {
-  return v_color * kA;
+  return v_color * v_kA;
 }
 
 vec4 diffuse() {
   float lambertian = max(dot(normalize(lightPos - v_pos), v_normal), .0);
-  return v_color * kD * lambertian;
+  return v_color * v_kD * lambertian;
 }
 
 vec4 specular() {
   vec3 l = normalize(lightPos - v_pos);
   vec3 r = reflect(-l,v_normal);
   vec3 v = normalize(-v_pos);
-  return v_color * kS * pow(max(dot(r,v),0.0), shininess);
+  return v_color * v_kS * pow(max(dot(r,v),0.0), v_shininess);
 }
 
 void main(void){
   gl_FragColor=vec4((ambient() + diffuse() + specular()).xyz, 1.0);
+  // gl_FragColor=vec4(v_normal, 1.0);
 }

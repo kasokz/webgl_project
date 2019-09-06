@@ -26,7 +26,7 @@ export default {
 			}
 		}),
 		glsl({
-			sourceMap: false,
+			sourceMap: true,
 			include: '**/*.glsl',
 			exclude: ['**/index.html'],
 		}

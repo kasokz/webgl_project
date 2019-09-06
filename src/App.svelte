@@ -1,7 +1,13 @@
 <script>
   import SceneGraph from "./components/SceneGraph.svelte";
+  import PhongConfigurator from "./components/PhongConfigurator.svelte";
   import { onMount, tick } from "svelte";
-  import { sceneGraph, animationNodes, keysPressed } from "./state/stores.js";
+  import {
+    sceneGraph,
+    animationNodes,
+    keysPressed,
+    camera
+  } from "./state/stores.js";
 
   import vertexShader from "./shaders/raster-vertex-shader.glsl";
   import phongFragmentShader from "./shaders/raster-phong-fragment-shader.glsl";
@@ -10,7 +16,12 @@
 
   import Vector from "./math/vector.js";
   import Matrix from "./math/matrix.js";
-  import { GroupNode, SphereNode, TextureBoxNode } from "./scenegraph/nodes.js";
+  import {
+    GroupNode,
+    SphereNode,
+    TextureBoxNode,
+    AABoxNode
+  } from "./scenegraph/nodes.js";
   import {
     RasterVisitor,
     RasterSetupVisitor
@@ -34,7 +45,7 @@
     rasterVisitor = new RasterVisitor(webgl);
     rasterSetupVisitor = new RasterSetupVisitor(webgl);
 
-    let camera = {
+    camera.set({
       eye: new Vector(0, 0, -1, 1),
       center: new Vector(0, 0, 0, 1),
       up: new Vector(0, 1, 0, 0),
@@ -42,44 +53,58 @@
       aspect: canvas.width / canvas.height,
       near: 0.1,
       far: 100
-    };
+    });
 
     // initialize scene graph
     sceneGraph.set(new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2))));
-    const gn1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
-    const gn3 = new GroupNode(Matrix.identity());
-    gn1.add(gn3);
-    const sphere = new SphereNode(
-      new Vector(0.5, -0.8, 0, 1),
-      0.4,
-      new Vector(0.8, 0.4, 0.1, 1)
+    const group1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
+    const sphereNode = new GroupNode(Matrix.identity());
+    sphereNode.add(
+      new SphereNode(
+        new Vector(0.5, -0.8, 0, 1),
+        0.4,
+        new Vector(0.8, 0.4, 0.1, 1)
+      )
     );
-    gn3.add(sphere);
-    sceneGraph.add(gn1);
-    let gn2 = new GroupNode(Matrix.translation(new Vector(-0.7, -0.4, 0.1)));
-    const cube = new TextureBoxNode(
-      new Vector(-1, -1, -1, 1),
-      new Vector(1, 1, 1, 1),
-      "hci-logo.png"
-    );
-    gn2.add(cube);
-    sceneGraph.add(gn2);
+    group1.add(sphereNode);
+    sceneGraph.add(group1);
 
-    const phongShader = new Shader(webgl, vertexShader, phongFragmentShader);
-    rasterVisitor.shader = phongShader;
-    const textureShader = new Shader(
+    let group2 = new GroupNode(Matrix.translation(new Vector(-0.7, -0.4, 0.1)));
+    let cubeNode = new GroupNode(Matrix.identity());
+    cubeNode.add(
+      new TextureBoxNode(
+        new Vector(-1, -1, -1, 1),
+        new Vector(1, 1, 1, 1),
+        "hci-logo.png"
+      )
+    );
+    group2.add(cubeNode);
+    sceneGraph.add(group2);
+
+    let group3 = new GroupNode(Matrix.translation(new Vector(-6.0, 0.0, 3.0)));
+    let redCube = new GroupNode(Matrix.identity());
+    redCube.add(
+      new AABoxNode(
+        new Vector(-1, -1, -1, 1),
+        new Vector(1, 1, 1, 1),
+        new Vector(0.8, 0, 0, 1)
+      )
+    );
+    group3.add(redCube);
+    sceneGraph.add(group3);
+
+    rasterVisitor.shader = new Shader(webgl, vertexShader, phongFragmentShader);
+    rasterVisitor.textureshader = new Shader(
       webgl,
       textureVertexShader,
       textureFragmentShader
     );
-    rasterVisitor.textureshader = textureShader;
 
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
-
-    animationNodes.add(new RotationNode(gn2, new Vector(0, 0, 1)));
-    animationNodes.add(new RotationNode(gn2, new Vector(0, 1, 0)));
-    animationNodes.add(new BouncingNode(gn3, new Vector(0, 1, 0), 0.7));
+    animationNodes.add(new RotationNode(cubeNode, new Vector(0, 1, 0)));
+    animationNodes.add(new BouncingNode(sphereNode, new Vector(0, 1, 0), 0.5));
+    animationNodes.add(new RotationNode(redCube, new Vector(0, 1, 0)));
 
     function simulate(deltaT) {
       for (let animationNode of $animationNodes) {
@@ -91,14 +116,15 @@
 
     const animateFunc = timestamp => {
       simulate(timestamp - lastTimestamp);
-      activeRenderer.render($sceneGraph, camera, lightPositions);
+      activeRenderer.render($sceneGraph, $camera, lightPositions);
       lastTimestamp = timestamp;
       window.requestAnimationFrame(animateFunc);
     };
 
-    Promise.all([phongShader.load(), textureShader.load()]).then(_ =>
-      window.requestAnimationFrame(animateFunc)
-    );
+    Promise.all([
+      rasterVisitor.shader.load(),
+      rasterVisitor.textureshader.load()
+    ]).then(_ => window.requestAnimationFrame(animateFunc));
   });
 
   const handleKeyDown = event => {
@@ -145,14 +171,34 @@
 
   #sidebar {
     grid-area: sidebar;
+  }
+
+  .sidebar__scenegraph {
+    height: 48%;
+    box-shadow: 0.1em 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.5);
     background-color: rgba(255, 166, 0, 0.404);
+    margin-bottom: 2%;
+  }
+
+  .sidebar__configurator {
+    height: 50%;
+    overflow-y: scroll;
+    box-shadow: 0.1em 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.5);
+    background-color: rgba(255, 166, 0, 0.404);
+  }
+
+  #header > a {
+    text-decoration: none;
+    color: inherit;
   }
 </style>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 <div class="main-container">
   <div id="header">
-    <h1>ICG Master Project</h1>
+    <a href="/">
+      <h1>ICG Master Project</h1>
+    </a>
     <div class="header__button-group">
       <button
         id="renderer_toggle"
@@ -178,7 +224,12 @@
     </div>
   </div>
   <div id="sidebar">
-    <SceneGraph />
+    <div class="sidebar__scenegraph">
+      <SceneGraph />
+    </div>
+    <div class="sidebar__configurator">
+      <PhongConfigurator />
+    </div>
   </div>
   <canvas bind:this={canvas} width="1920" height="1080" />
 </div>

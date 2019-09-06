@@ -62,7 +62,6 @@ export default class RasterSphere {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(normals), this.gl.STATIC_DRAW);
     this.normalBuffer = normalBuffer;
     this.elements = indices.length;
-
     const vertexColours = [];
     for (let i = 0; i < vertices.length / 3; i++) {
       vertexColours.push(color.r);

@@ -33,6 +33,46 @@ const createKeysPressed = () => {
   }
 }
 
+const createPhongConfiguration = () => {
+  const { subscribe, update, set } = writable({
+    ambient: 0.6,
+    diffuse: 0.6,
+    specular: 0.8,
+    shininess: 10.
+  });
+
+
+
+  return {
+    subscribe,
+    update,
+    set,
+    loadIntoShader: (shader) => {
+      const unsubscribe = subscribe(phong => {
+        let kA = shader.getUniformFloat("kA");
+        if (kA) {
+          kA.set(phong.ambient);
+        }
+        let kD = shader.getUniformFloat("kD");
+        if (kD) {
+          kD.set(phong.diffuse)
+        }
+        let kS = shader.getUniformFloat("kS");
+        if (kS) {
+          kS.set(phong.specular);
+        }
+        let shininess = shader.getUniformFloat("shininess");
+        if (shininess) {
+          shininess.set(phong.shininess);
+        }
+      });
+      unsubscribe();
+    }
+  }
+}
+
+export const phongConfiguration = createPhongConfiguration();
+export const camera = writable({});
 export const keysPressed = createKeysPressed();
 export const selectedNode = writable({});
 export const sceneGraph = createSceneGraph();

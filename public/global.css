@@ -3,3 +3,15 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+h1 {
+  font-size: 2em !important;
+}
+
+h2 {
+  font-size: 1.4em !important;
+}
+
+h3 {
+  font-size: 1.2em !important;
+}

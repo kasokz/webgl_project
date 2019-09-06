@@ -3,6 +3,7 @@ import RasterBox from '../../scenegraph/rasterizer/raster-box.js';
 import RasterTextureBox from '../../scenegraph/rasterizer/raster-texture-box.js';
 import Vector from '../../math/vector.js';
 import Matrix from '../../math/matrix.js';
+import { phongConfiguration } from "../../state/stores.js";
 
 /**
  * Class representing a Visitor that uses Rasterisation to render a Scenegraph
@@ -33,7 +34,7 @@ export class RasterVisitor {
   render(rootNode, camera, lightPositions) {
     // clear
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    this.gl.clearColor(.0,.0,.0,.1)
+    this.gl.clearColor(.0, .0, .0, .1)
     this.setupCamera(camera);
 
     // traverse and render
@@ -69,24 +70,26 @@ export class RasterVisitor {
    * @param  {Node} node - The node to visit
    */
   visitSphereNode(node) {
-    let shader = this.shader;
-    shader.use();
-    shader.getUniformMatrix('M').set(this.matrixStack.top());
-
-    let V = shader.getUniformMatrix('V');
-    if (V && this.lookat) {
+    this.shader.use();
+    phongConfiguration.loadIntoShader(this.shader);
+    let M = this.shader.getUniformMatrix('M');
+    if (M) {
+      M.set(this.matrixStack.top());
+    }
+    let V = this.shader.getUniformMatrix('V');
+    if (V) {
       V.set(this.lookat);
     }
-    let P = shader.getUniformMatrix('P');
-    if (P && this.perspective) {
+    let P = this.shader.getUniformMatrix('P');
+    if (P) {
       P.set(this.perspective);
     }
-    let N = shader.getUniformMatrix('N');
-    if (N && this.lookat) {
+    let N = this.shader.getUniformMatrix('N');
+    if (N) {
       const modelViewMat = this.lookat.mul(this.matrixStack.top());
       N.set(modelViewMat.invert().transpose());
     }
-    node.rastersphere.render(shader);
+    node.rastersphere.render(this.shader);
   }
 
   /**
@@ -94,19 +97,26 @@ export class RasterVisitor {
    * @param  {Node} node - The node to visit
    */
   visitAABoxNode(node) {
-    let shader = this.shader;
-    shader.use();
-    shader.getUniformMatrix('M').set(this.matrixStack.top());
-
-    let V = shader.getUniformMatrix('V');
-    if (V && this.lookat) {
+    this.shader.use();
+    phongConfiguration.loadIntoShader(this.shader);
+    let M = this.shader.getUniformMatrix('M');
+    if (M) {
+      M.set(this.matrixStack.top());
+    }
+    let V = this.shader.getUniformMatrix('V');
+    if (V) {
       V.set(this.lookat);
     }
-    let P = shader.getUniformMatrix('P');
-    if (P && this.perspective) {
+    let P = this.shader.getUniformMatrix('P');
+    if (P) {
       P.set(this.perspective);
     }
-    node.rasterbox.render(shader);
+    let N = this.shader.getUniformMatrix('N');
+    if (N) {
+      const modelViewMat = this.lookat.mul(this.matrixStack.top());
+      N.set(modelViewMat.invert().transpose());
+    }
+    node.rasterbox.render(this.shader);
   }
 
   /**
@@ -115,17 +125,16 @@ export class RasterVisitor {
    */
   visitTextureBoxNode(node) {
     this.textureshader.use();
-    let shader = this.textureshader;
 
-    shader.getUniformMatrix('M').set(this.matrixStack.top());
+    this.textureshader.getUniformMatrix('M').set(this.matrixStack.top());
 
-    let P = shader.getUniformMatrix('P');
+    let P = this.textureshader.getUniformMatrix('P');
     if (P && this.perspective) {
       P.set(this.perspective);
     }
-    shader.getUniformMatrix('V').set(this.lookat);
+    this.textureshader.getUniformMatrix('V').set(this.lookat);
 
-    node.rastertexturebox.render(shader);
+    node.rastertexturebox.render(this.textureshader);
   }
 }
 
@@ -178,7 +187,7 @@ export class RasterSetupVisitor {
    * @param  {Node} node - The node to visit
    */
   visitAABoxNode(node) {
-    node.rasterbox = new RasterBox(this.gl, node.minPoint, node.maxPoint);
+    node.rasterbox = new RasterBox(this.gl, node.minPoint, node.maxPoint, node.color);
   }
 
   /**
