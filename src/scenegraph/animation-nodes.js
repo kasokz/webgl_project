@@ -44,8 +44,37 @@ export class RotationNode extends AnimationNode {
    */
   simulate(deltaT) {
     if (this.active) {
-      this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT/1000).mul(this.groupNode.matrix);
+      this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
     }
   }
+}
+
+
+/**
+ * Class representing a Rotation Animation
+ * @extends AnimationNode
+ */
+export class BouncingNode extends AnimationNode {
+  /**
+   * Creates a new RotationNode
+   * @param {GroupNode} groupNode - The group node to attach to
+   * @param {Vector} axis         - The axis to rotate around
+   */
+  constructor(groupNode, axis, distance) {
+    super(groupNode);
+    this.distance = 90;
+    this.axis = axis;
+  }
+
+  /**
+   * Advances the animation by deltaT
+   * @param  {number} deltaT - The time difference, the animation is advanced by
+   */
+  simulate(deltaT) {
+    if (this.active) {
+      this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+    }
+  }
+
 
 }

@@ -80,7 +80,8 @@
 
     animationNodes = [
       new RotationNode(gn2, new Vector(0, 0, 1)),
-      new RotationNode(gn2, new Vector(0, 1, 0))
+      new RotationNode(gn2, new Vector(0, 1, 0)),
+      new RotationNode(gn3, new Vector(1, 1, 0))
     ];
 
     function simulate(deltaT) {
@@ -125,9 +126,6 @@
 
   const handleKeyUp = event => {
     switch (event.code) {
-      case "ArrowUp":
-        animationNodes.forEach(node => node.toggleActive());
-        break;
       case "KeyW":
         break;
       case "KeyA":
