@@ -1,14 +1,12 @@
 <script>
   import { onMount } from "svelte";
   import SceneGraphLeaf from "./SceneGraphLeaf.svelte";
-  import UIVisitor from "../renderer/ui/UIVisitor.js";
   import { GroupNode } from "../scenegraph/nodes.js";
   import { animationNodes } from "../state/stores.js";
 
   export let node;
   let showChildren = true;
   let showAnimations = true;
-  let uiVisitor = new UIVisitor();
 
   const toggleChildren = () => {
     showChildren = !showChildren;

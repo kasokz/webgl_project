@@ -1,7 +1,7 @@
 <script>
   import SceneGraph from "./components/SceneGraph.svelte";
   import { onMount, tick } from "svelte";
-  import { sceneGraph, animationNodes } from "./state/stores.js";
+  import { sceneGraph, animationNodes, keysPressed } from "./state/stores.js";
 
   import vertexShader from "./shaders/raster-vertex-shader.glsl";
   import phongFragmentShader from "./shaders/raster-phong-fragment-shader.glsl";
@@ -102,40 +102,17 @@
   });
 
   const handleKeyDown = event => {
-    switch (event.code) {
-      case "ArrowUp":
-        $animationNodes.forEach(node => node.toggleActive());
-        break;
-      case "KeyW":
-        break;
-      case "KeyA":
-        break;
-      case "KeyS":
-        break;
-      case "KeyD":
-        break;
-      case "KeyQ":
-        break;
-      case "KeyE":
-        break;
+    if (event.code == "ArrowUp") {
+      $animationNodes.forEach(node => node.toggleActive());
+      return;
+    }
+    if (!$keysPressed.get(event.code)) {
+      keysPressed.keydown(event.code);
     }
   };
 
   const handleKeyUp = event => {
-    switch (event.code) {
-      case "KeyW":
-        break;
-      case "KeyA":
-        break;
-      case "KeyS":
-        break;
-      case "KeyD":
-        break;
-      case "KeyQ":
-        break;
-      case "KeyE":
-        break;
-    }
+    keysPressed.keyup(event.code);
   };
 </script>
 

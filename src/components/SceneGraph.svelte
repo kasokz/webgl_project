@@ -1,7 +1,6 @@
 <script>
-  import { sceneGraph } from "../state/stores.js";
+  import { sceneGraph, keysPressed } from "../state/stores.js";
   import SceneGraphNode from "./SceneGraphNode.svelte";
-  import UIVisitor from "../renderer/ui/UIVisitor.js";
 </script>
 
 <style>

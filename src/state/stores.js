@@ -23,6 +23,17 @@ const createAnimationNodes = () => {
   }
 }
 
+const createKeysPressed = () => {
+  const { subscribe, update } = writable(new Map());
+
+  return {
+    subscribe,
+    keydown: (key) => update(keys => { keys.set(key, true); return keys; }),
+    keyup: (key) => update(keys => { keys.set(key, false); return keys; })
+  }
+}
+
+export const keysPressed = createKeysPressed();
 export const selectedNode = writable({});
 export const sceneGraph = createSceneGraph();
 export const animationNodes = createAnimationNodes();

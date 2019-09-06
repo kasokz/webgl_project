@@ -1,9 +1,7 @@
 <script>
   import { selectedNode } from "../state/stores.js";
-  import UIVisitor from "../renderer/ui/UIVisitor.js";
 
   export let node;
-  let uiVisitor = new UIVisitor();
 
   const click = () => {
     selectedNode.set(node);
@@ -25,5 +23,5 @@
 </style>
 
 <span class:active={$selectedNode === node} on:click={click}>
-  {uiVisitor.visitNode(node)}
+  {node.constructor.name}
 </span>
