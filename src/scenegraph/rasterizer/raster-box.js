@@ -24,32 +24,41 @@ export default class RasterBox {
       mi.x, mi.y, ma.z,
       ma.x, mi.y, ma.z,
       ma.x, ma.y, ma.z,
+      ma.x, ma.y, ma.z,
       mi.x, ma.y, ma.z,
+      mi.x, mi.y, ma.z,
       ma.x, mi.y, mi.z,
       mi.x, mi.y, mi.z,
       mi.x, ma.y, mi.z,
-      ma.x, ma.y, mi.z
+      mi.x, ma.y, mi.z,
+      ma.x, ma.y, mi.z,
+      ma.x, mi.y, mi.z,
+      ma.x, mi.y, ma.z,
+      ma.x, mi.y, mi.z,
+      ma.x, ma.y, mi.z,
+      ma.x, ma.y, mi.z,
+      ma.x, ma.y, ma.z,
+      ma.x, mi.y, ma.z,
+      mi.x, ma.y, ma.z,
+      ma.x, ma.y, ma.z,
+      ma.x, ma.y, mi.z,
+      ma.x, ma.y, mi.z,
+      mi.x, ma.y, mi.z,
+      mi.x, ma.y, ma.z,
+      mi.x, mi.y, mi.z,
+      mi.x, mi.y, ma.z,
+      mi.x, ma.y, ma.z,
+      mi.x, ma.y, ma.z,
+      mi.x, ma.y, mi.z,
+      mi.x, mi.y, mi.z,
+      mi.x, mi.y, mi.z,
+      ma.x, mi.y, mi.z,
+      ma.x, mi.y, ma.z,
+      ma.x, mi.y, ma.z,
+      mi.x, mi.y, ma.z,
+      mi.x, mi.y, mi.z,
     ];
-    let indices = [
-      //front
-      0, 1, 2,
-      2, 3, 0,
-      // back
-      4, 5, 6,
-      6, 7, 4,
-      // right
-      1, 4, 7,
-      7, 2, 1,
-      // top
-      3, 2, 7,
-      7, 6, 3,
-      // left
-      5, 0, 3,
-      3, 6, 5,
-      // bottom
-      5, 4, 1,
-      1, 0, 5
-    ];
+    let indices = [...Array(36).keys()];
     let normals = [
       // front
       0., 0., 1.,
@@ -83,9 +92,9 @@ export default class RasterBox {
       -1.0, 0., 0.,
       -1.0, 0., 0.,
       -1.0, 0., 0.,
-      1.0, 0., 0.,
-      1.0, 0., 0.,
-      1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
       // bottom
       0., -1., 0.,
       0., -1., 0.,
@@ -122,10 +131,6 @@ export default class RasterBox {
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
     this.normalBuffer = normalBuffer;
-  }
-
-  calculateNormals(vec1, vec2, vec3) {
-
   }
 
   /**

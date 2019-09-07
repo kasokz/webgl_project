@@ -49,6 +49,9 @@ export default class RasterSphere {
       }
     }
 
+    console.log(normals.length / 3);
+    console.log(indices.length);
+
     const vertexBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);

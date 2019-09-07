@@ -64,7 +64,7 @@
     const group1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
     const sphereNode = new GroupNode(Matrix.identity());
     sphereNode.add(
-      new SphereNode(new Vector(0, 0, 0, 1), 0.4, new Vector(0.8, 0.4, 0.1, 1))
+      new SphereNode(new Vector(0, 0, 0, 1), 0.5, new Vector(0.8, 0.4, 0.1, 1))
     );
     group1.add(sphereNode);
     sceneGraph.add(group1);

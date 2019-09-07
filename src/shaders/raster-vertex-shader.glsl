@@ -23,7 +23,9 @@ void main(){
   mat4 modelView = V * M;
   vec4 vert_pos = modelView * vec4(a_position,1.);
   gl_Position= P * vert_pos;
-  v_normal = normalize(vec3(N * vec4(a_normal, .0)));
+  v_normal = normalize(vec3(
+    N *
+    vec4(a_normal, .0)));
   v_color = a_colour;
   v_pos = vec3(vert_pos.xyz / vert_pos.w);
   v_kA = kA;
