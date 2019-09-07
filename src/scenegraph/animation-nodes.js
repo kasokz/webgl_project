@@ -1,4 +1,5 @@
 import Matrix from '../math/matrix.js';
+import Vector from '../math/vector.js';
 import { selectedNode, keysPressed } from '../state/stores.js';
 
 /**
@@ -47,8 +48,20 @@ export class RotationNode extends AnimationNode {
       this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
     }
   }
-}
 
+  toJSON() {
+    return {
+      type: this.constructor.name,
+      groupNodeId: this.groupNode.id,
+      axis: this.axis
+    }
+  }
+
+  static fromJSON(obj) {
+    const axis = new Vector(obj.axis._x, obj.axis._y, obj.axis._z, obj.axis._w);
+    return new RotationNode(null, axis);
+  }
+}
 
 /**
  * Class representing a Rotation Animation
@@ -77,6 +90,20 @@ export class BouncingNode extends AnimationNode {
       this.value += deltaT / 200;
       this.groupNode.matrix = Matrix.translation(this.axis.mul(Math.sin(this.value) / 10 * this.distance)).mul(this.groupNode.matrix);
     }
+  }
+
+  toJSON() {
+    return {
+      type: this.constructor.name,
+      groupNodeId: this.groupNode.id,
+      axis: this.axis,
+      distance: this.distance
+    }
+  }
+
+  static fromJSON(obj) {
+    const axis = new Vector(obj.axis._x, obj.axis._y, obj.axis._z, obj.axis._w);
+    return new BouncingNode(null, axis, obj.distance);
   }
 }
 
@@ -118,4 +145,23 @@ export class ManualRotationNode extends AnimationNode {
       selectedUnsubscribe();
     }
   }
+
+  toJSON() {
+    return {
+      type: this.constructor.name,
+      groupNodeId: this.groupNode.id,
+      axis: this.axis
+    }
+  }
+
+  static fromJSON(obj) {
+    const axis = new Vector(obj.axis._x, obj.axis._y, obj.axis._z, obj.axis._w);
+    return new ManualRotationNode(null, axis);
+  }
+}
+
+export const animationNodeClasses = {
+  "RotationNode": RotationNode,
+  "BouncingNode": BouncingNode,
+  "ManualRotationNode": ManualRotationNode
 }

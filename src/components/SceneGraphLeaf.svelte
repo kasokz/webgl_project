@@ -23,5 +23,6 @@
 </style>
 
 <span class:active={$selectedNode === node} on:click={click}>
-  {node.constructor.name}
+  <strong>{node.id}</strong>
+  {` (${node.constructor.name})`}
 </span>

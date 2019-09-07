@@ -1,12 +1,20 @@
+import Matrix from '../math/matrix.js';
+import Vector from "../math/vector.js"
+
 /**
  * Class representing a Node in a Scenegraph
  */
 class Node {
+
+  constructor(id) {
+    this.id = id;
+  }
+
   /**
    * Accepts a visitor according to the visitor pattern
    * @param  {Visitor} visitor - The visitor
    */
-  accept(visitor) {}
+  accept(visitor) { }
 }
 
 /**
@@ -20,8 +28,8 @@ export class GroupNode extends Node {
    * Constructor
    * @param  {Matrix} mat - A matrix describing the node's transformation
    */
-  constructor(mat) {
-    super();
+  constructor(id, mat) {
+    super(id);
     this.matrix = mat;
     this.children = new Array();
   }
@@ -41,6 +49,39 @@ export class GroupNode extends Node {
   add(childNode) {
     this.children.push(childNode);
   }
+
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.constructor.name,
+      matrix: this.matrix,
+      children: this.children
+    };
+  }
+
+  find(nodeId) {
+    if (this.id === nodeId) {
+      return this;
+    }
+    if (this.children.length === 0) {
+      return null;
+    }
+    for (let child of this.children.filter(c => c instanceof GroupNode)) {
+      const childResult = child.find(nodeId);
+      if (childResult) {
+        return childResult;
+      }
+    }
+    return null;
+  }
+
+  static fromJSON(obj) {
+    const matrix = new Matrix([]);
+    matrix.data = obj.matrix.data;
+    const result = new GroupNode(obj.id, matrix);
+    result.children = obj.children.map(child => nodeClasses[child.type].fromJSON(child));
+    return result;
+  }
 }
 
 /**
@@ -54,8 +95,8 @@ export class SphereNode extends Node {
    * @param  {number} radius - The radius of the Sphere
    * @param  {Vector} color  - The colour of the Sphere
    */
-  constructor(center, radius, color) {
-    super();
+  constructor(id, center, radius, color) {
+    super(id);
     this.center = center;
     this.radius = radius;
     this.color = color;
@@ -68,6 +109,24 @@ export class SphereNode extends Node {
   accept(visitor) {
     visitor.visitSphereNode(this);
   }
+
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.constructor.name,
+      center: this.center,
+      radius: this.radius,
+      color: this.color
+    }
+  }
+
+  static fromJSON(obj) {
+    return new SphereNode(obj.id,
+      new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w),
+      obj.radius,
+      new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w));
+  }
+
 }
 
 /**
@@ -81,8 +140,8 @@ export class AABoxNode extends Node {
    * @param  {Vector} maxPoint - The maximum Point
    * @param  {Vector} color    - The colour of the cube
    */
-  constructor(minPoint, maxPoint, color) {
-    super();
+  constructor(id, minPoint, maxPoint, color) {
+    super(id);
     this.minPoint = minPoint;
     this.maxPoint = maxPoint;
     this.color = color;
@@ -95,7 +154,25 @@ export class AABoxNode extends Node {
   accept(visitor) {
     visitor.visitAABoxNode(this);
   }
+
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.constructor.name,
+      minPoint: this.minPoint,
+      maxPoint: this.maxPoint,
+      color: this.color
+    }
+  }
+
+  static fromJSON(obj) {
+    const minPoint = new Vector(obj.minPoint._x, obj.minPoint._y, obj.minPoint._z, obj.minPoint._w);
+    const maxPoint = new Vector(obj.maxPoint._x, obj.maxPoint._y, obj.maxPoint._z, obj.maxPoint._w);
+    const color = new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w);
+    return new AABoxNode(obj.id, minPoint, maxPoint, color);
+  }
 }
+
 
 /**
  * Class representing a Textured Axis Aligned Box in the Scenegraph
@@ -108,8 +185,8 @@ export class TextureBoxNode extends Node {
    * @param  {Vector} maxPoint - The maximum Point
    * @param  {string} texture  - The image filename for the texture
    */
-  constructor(minPoint, maxPoint, texture) {
-    super();
+  constructor(id, minPoint, maxPoint, texture) {
+    super(id);
     this.minPoint = minPoint;
     this.maxPoint = maxPoint;
     this.texture = texture;
@@ -122,4 +199,27 @@ export class TextureBoxNode extends Node {
   accept(visitor) {
     visitor.visitTextureBoxNode(this);
   }
+
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.constructor.name,
+      minPoint: this.minPoint,
+      maxPoint: this.maxPoint,
+      texture: this.texture
+    }
+  }
+
+  static fromJSON(obj) {
+    const minPoint = new Vector(obj.minPoint._x, obj.minPoint._y, obj.minPoint._z, obj.minPoint._w);
+    const maxPoint = new Vector(obj.maxPoint._x, obj.maxPoint._y, obj.maxPoint._z, obj.maxPoint._w);
+    return new TextureBoxNode(obj.id, minPoint, maxPoint, obj.texture);
+  }
+}
+
+export const nodeClasses = {
+  "GroupNode": GroupNode,
+  "SphereNode": SphereNode,
+  "AABoxNode": AABoxNode,
+  "TextureBoxNode": TextureBoxNode
 }

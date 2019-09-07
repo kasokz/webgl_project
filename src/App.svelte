@@ -31,7 +31,8 @@
   import {
     RotationNode,
     BouncingNode,
-    ManualRotationNode
+    ManualRotationNode,
+    animationNodeClasses
   } from "./scenegraph/animation-nodes.js";
 
   let fileInput;
@@ -62,19 +63,33 @@
     });
 
     // initialize scene graph
-    sceneGraph.set(new GroupNode(Matrix.scaling(new Vector(0.2, 0.2, 0.2))));
-    const group1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
-    const sphereNode = new GroupNode(Matrix.identity());
+    sceneGraph.set(
+      new GroupNode("root", Matrix.scaling(new Vector(0.2, 0.2, 0.2)))
+    );
+    const group1 = new GroupNode(
+      "group1",
+      Matrix.translation(new Vector(1, 1, 0))
+    );
+    const sphereNode = new GroupNode("sphereNode1", Matrix.identity());
     sphereNode.add(
-      new SphereNode(new Vector(0, 0, 0, 1), 0.5, new Vector(0.8, 0.4, 0.1, 1))
+      new SphereNode(
+        "sphere1",
+        new Vector(0, 0, 0, 1),
+        0.5,
+        new Vector(0.8, 0.4, 0.1, 1)
+      )
     );
     group1.add(sphereNode);
     sceneGraph.add(group1);
 
-    let group2 = new GroupNode(Matrix.translation(new Vector(0, 0, 5)));
-    let cubeNode = new GroupNode(Matrix.identity());
+    let group2 = new GroupNode(
+      "group2",
+      Matrix.translation(new Vector(0, 0, 5))
+    );
+    let cubeNode = new GroupNode("cubeNode1", Matrix.identity());
     cubeNode.add(
       new TextureBoxNode(
+        "textureBox1",
         new Vector(-1, -1, -1, 1),
         new Vector(1, 1, 1, 1),
         "hci-logo.png"
@@ -83,10 +98,17 @@
     group2.add(cubeNode);
     sceneGraph.add(group2);
 
-    let group3 = new GroupNode(Matrix.translation(new Vector(-6.0, 0.0, 3.0)));
-    let redCube = new GroupNode(Matrix.rotation(new Vector(0, 1, 0), 180));
+    let group3 = new GroupNode(
+      "group3",
+      Matrix.translation(new Vector(-6.0, 0.0, 3.0))
+    );
+    let redCube = new GroupNode(
+      "redCubeNode",
+      Matrix.rotation(new Vector(0, 1, 0), 180)
+    );
     redCube.add(
       new AABoxNode(
+        "redCube",
         new Vector(-1, -1, -1, 1),
         new Vector(1, 1, 1, 1),
         new Vector(0.8, 0, 0, 1)
@@ -132,16 +154,6 @@
       rasterVisitor.shader.load(),
       rasterVisitor.textureshader.load()
     ]).then(_ => window.requestAnimationFrame(animateFunc));
-
-    unsubscribeSceneGraph = sceneGraph.subscribe(sg => {
-      if (dataURL) {
-        window.URL.revokeObjectURL(dataURL);
-      }
-      dataURL = window.URL.createObjectURL(
-        new Blob([JSON.stringify(sg)], { type: "application/json" })
-      );
-      downloadButton.href = dataURL;
-    });
   });
 
   const handleKeyDown = event => {
@@ -163,13 +175,39 @@
     if (newSelection) {
       const fileReader = new FileReader();
       fileReader.onload = e => {
-        console.log(JSON.parse(e.target.result));
+        let parsed = JSON.parse(e.target.result);
+        let sceneGraphObj = parsed.sceneGraph;
+        let animationNodesArr = parsed.animationNodes;
+        $sceneGraph = GroupNode.fromJSON(sceneGraphObj);
+        rasterSetupVisitor.setup($sceneGraph);
+        $animationNodes = [];
+        animationNodesArr.forEach(anim => {
+          let newNode = animationNodeClasses[anim.type].fromJSON(anim);
+          newNode.groupNode = $sceneGraph.find(anim.groupNodeId);
+          animationNodes.add(newNode);
+        });
       };
       fileReader.readAsText(newSelection);
     }
   };
 
-  onDestroy(unsubscribeSceneGraph);
+  const handleDownload = event => {
+    if (dataURL) {
+      window.URL.revokeObjectURL(dataURL);
+    }
+    dataURL = window.URL.createObjectURL(
+      new Blob(
+        [
+          JSON.stringify({
+            sceneGraph: $sceneGraph,
+            animationNodes: $animationNodes
+          })
+        ],
+        { type: "application/json" }
+      )
+    );
+    downloadButton.href = dataURL;
+  };
 </script>
 
 <style>
@@ -251,6 +289,7 @@
         class="btn btn-primary"
         download="scenegraph.json"
         bind:this={downloadButton}
+        on:click={handleDownload}
         href="/">
         Save Scene
       </a>

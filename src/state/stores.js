@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 import { GroupNode } from '../scenegraph/nodes.js';
 import Matrix from '../math/matrix.js';
 
@@ -9,15 +9,16 @@ const createSceneGraph = () => {
     subscribe,
     set,
     add: (node) => update(sg => { sg.add(node); return sg }),
-    //remove: (node) => update(sg => sg.filter((_, i) => i !== sg.indexOf(node))),
+    remove: (node) => update(sg => sg.filter((_, i) => i !== sg.indexOf(node))),
   }
 }
 
 const createAnimationNodes = () => {
-  const { subscribe, update } = writable([]);
+  const { subscribe, update, set } = writable([]);
 
   return {
     subscribe,
+    set,
     add: (node) => update(nodes => [...nodes, node]),
     remove: (node) => update(nodes => nodes.filter((_, i) => i !== nodes.indexOf(node))),
   }
@@ -40,8 +41,6 @@ const createPhongConfiguration = () => {
     specular: 0.8,
     shininess: 10.
   });
-
-
 
   return {
     subscribe,
