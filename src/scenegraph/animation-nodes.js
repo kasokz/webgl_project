@@ -20,7 +20,6 @@ class AnimationNode {
   toggleActive() {
     this.active = !this.active;
   }
-
 }
 
 /**

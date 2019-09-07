@@ -1,5 +1,7 @@
 <script>
   import { onMount } from "svelte";
+  import { fly } from "svelte/transition";
+  import { flip } from "svelte/animate";
   import SceneGraphLeaf from "./SceneGraphLeaf.svelte";
   import { GroupNode } from "../scenegraph/nodes.js";
   import { animationNodes } from "../state/stores.js";
@@ -54,7 +56,7 @@
       AnimationNodes:
     </span>
     {#if showAnimations}
-      <ul class="children_container">
+      <ul class="children_container" transition:fly="{{duration: 100}}">
         {#each $animationNodes.filter(aNode => aNode.groupNode === node) as animation}
           <div style="padding: 0 0.5em 0 0.5em;">
             {animation.constructor.name}
@@ -72,7 +74,7 @@
     ChildNodes:
   </span>
   {#if showChildren}
-    <ul class="children_container">
+    <ul class="children_container" transition:fly="{{duration: 100}}">
       {#each node.children as child}
         {#if child instanceof GroupNode}
           <svelte:self node={child} />

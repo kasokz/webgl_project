@@ -1,7 +1,7 @@
 <script>
   import SceneGraph from "./components/SceneGraph.svelte";
   import PhongConfigurator from "./components/PhongConfigurator.svelte";
-  import { onMount, tick } from "svelte";
+  import { onMount, onDestroy, tick } from "svelte";
   import {
     sceneGraph,
     animationNodes,
@@ -33,9 +33,11 @@
     BouncingNode,
     ManualRotationNode
   } from "./scenegraph/animation-nodes.js";
-  import handleExport from "./io/export.js";
-  import handleImport from "./io/import.js";
 
+  let fileInput;
+  let downloadButton;
+  let unsubscribeSceneGraph;
+  let dataURL;
   let canvas;
   let activeRenderer;
   let rasterVisitor;
@@ -106,6 +108,9 @@
     animationNodes.add(new BouncingNode(sphereNode, new Vector(0, 1, 0), 0.5));
     animationNodes.add(new ManualRotationNode(redCube, new Vector(0, 1, 0)));
     animationNodes.add(new ManualRotationNode(group3, new Vector(0, 1, 0)));
+    animationNodes.add(
+      new ManualRotationNode($sceneGraph, new Vector(0, 1, 0))
+    );
     animationNodes.add(new RotationNode(sphereNode, new Vector(0, 1, 0)));
 
     function simulate(deltaT) {
@@ -127,6 +132,16 @@
       rasterVisitor.shader.load(),
       rasterVisitor.textureshader.load()
     ]).then(_ => window.requestAnimationFrame(animateFunc));
+
+    unsubscribeSceneGraph = sceneGraph.subscribe(sg => {
+      if (dataURL) {
+        window.URL.revokeObjectURL(dataURL);
+      }
+      dataURL = window.URL.createObjectURL(
+        new Blob([JSON.stringify(sg)], { type: "application/json" })
+      );
+      downloadButton.href = dataURL;
+    });
   });
 
   const handleKeyDown = event => {
@@ -142,6 +157,19 @@
   const handleKeyUp = event => {
     keysPressed.keyup(event.key);
   };
+
+  const handleUpload = event => {
+    const newSelection = event.target.files[0];
+    if (newSelection) {
+      const fileReader = new FileReader();
+      fileReader.onload = e => {
+        console.log(JSON.parse(e.target.result));
+      };
+      fileReader.readAsText(newSelection);
+    }
+  };
+
+  onDestroy(unsubscribeSceneGraph);
 </script>
 
 <style>
@@ -193,6 +221,14 @@
     text-decoration: none;
     color: inherit;
   }
+  input[type="file"] {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+  }
 </style>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
@@ -209,19 +245,29 @@
         on:click={toggleRenderer}>
         Toggle Renderer
       </button>
-      <button
+      <a
         id="save_button"
-        type="button"
+        role="button"
         class="btn btn-primary"
-        on:click={() => handleExport(sceneGraph)}>
+        download="scenegraph.json"
+        bind:this={downloadButton}
+        href="/">
         Save Scene
-      </button>
+      </a>
       <button
         id="load_button"
         type="button"
         class="btn btn-primary"
-        on:click={() => handleImport()}>
+        on:click={() => {
+          fileInput.click();
+        }}>
         Load Scene
+        <input
+          bind:this={fileInput}
+          id="file-uploader"
+          type="file"
+          accept="application/json"
+          on:change={handleUpload} />
       </button>
     </div>
   </div>
