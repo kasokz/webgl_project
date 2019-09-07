@@ -1,4 +1,5 @@
 import Matrix from '../math/matrix.js';
+import { selectedNode, keysPressed } from '../state/stores.js';
 
 /**
  * Class representing an Animation
@@ -78,6 +79,44 @@ export class BouncingNode extends AnimationNode {
       this.groupNode.matrix = Matrix.translation(this.axis.mul(Math.sin(this.value) / 10 * this.distance)).mul(this.groupNode.matrix);
     }
   }
+}
 
+/**
+ * Class representing a Rotation Animation
+ * @extends AnimationNode
+ */
+export class ManualRotationNode extends AnimationNode {
+  /**
+   * Creates a new ManualRotationNode
+   * @param {GroupNode} groupNode - The group node to attach to
+   * @param {Vector} axis         - The axis to rotate around
+   */
+  constructor(groupNode, axis) {
+    super(groupNode);
+    this.angle = 90;
+    this.axis = axis;
+  }
 
+  /**
+   * Advances the animation by deltaT
+   * @param  {number} deltaT - The time difference, the animation is advanced by
+   */
+  simulate(deltaT) {
+    if (this.active) {
+      const selectedUnsubscribe = selectedNode.subscribe(selected => {
+        if (selected === this.groupNode) {
+          const keysUnsubscribe = keysPressed.subscribe(keyState => {
+            if (keyState.get("a")) {
+              this.groupNode.matrix = Matrix.rotation(this.axis, -this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+            }
+            if (keyState.get("d")) {
+              this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+            }
+          })
+          keysUnsubscribe();
+        }
+      });
+      selectedUnsubscribe();
+    }
+  }
 }

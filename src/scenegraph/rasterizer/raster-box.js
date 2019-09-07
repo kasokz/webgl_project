@@ -31,7 +31,7 @@ export default class RasterBox {
       ma.x, ma.y, mi.z
     ];
     let indices = [
-      // front
+      //front
       0, 1, 2,
       2, 3, 0,
       // back
@@ -52,26 +52,26 @@ export default class RasterBox {
     ];
     let normals = [
       // front
-      0., 0., -1.,
-      0., 0., -1.,
-      0., 0., -1.,
-      0., 0., -1.,
-      0., 0., -1.,
-      0., 0., -1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
       // back
-      0., 0., 1.,
-      0., 0., 1.,
-      0., 0., 1.,
-      0., 0., 1.,
-      0., 0., 1.,
-      0., 0., 1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
       // right
-      -1.0, 0., 0.,
-      -1.0, 0., 0.,
-      -1.0, 0., 0.,
-      -1.0, 0., 0.,
-      -1.0, 0., 0.,
-      -1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
       // top
       0., 1., 0.,
       0., 1., 0.,
@@ -80,9 +80,9 @@ export default class RasterBox {
       0., 1., 0.,
       0., 1., 0.,
       // left
-      1.0, 0., 0.,
-      1.0, 0., 0.,
-      1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
       1.0, 0., 0.,
       1.0, 0., 0.,
       1.0, 0., 0.,
@@ -94,6 +94,7 @@ export default class RasterBox {
       0., -1., 0.,
       0., -1., 0.
     ];
+
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -121,6 +122,10 @@ export default class RasterBox {
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
     this.normalBuffer = normalBuffer;
+  }
+
+  calculateNormals(vec1, vec2, vec3) {
+
   }
 
   /**

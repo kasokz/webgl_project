@@ -28,5 +28,5 @@ vec4 specular() {
 
 void main(void){
   gl_FragColor=vec4((ambient() + diffuse() + specular()).xyz, 1.0);
-  // gl_FragColor=vec4(v_normal, 1.0);
+  gl_FragColor=vec4(v_normal, 1.0);
 }

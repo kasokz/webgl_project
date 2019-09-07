@@ -28,7 +28,11 @@
   } from "./renderer/rasterizer/rastervisitor.js";
   import RayVisitor from "./renderer/raytracer/rayvisitor.js";
   import Shader from "./shaders/shader.js";
-  import { RotationNode, BouncingNode } from "./scenegraph/animation-nodes.js";
+  import {
+    RotationNode,
+    BouncingNode,
+    ManualRotationNode
+  } from "./scenegraph/animation-nodes.js";
   import handleExport from "./io/export.js";
   import handleImport from "./io/import.js";
 
@@ -49,7 +53,7 @@
       eye: new Vector(0, 0, -1, 1),
       center: new Vector(0, 0, 0, 1),
       up: new Vector(0, 1, 0, 0),
-      fovy: 90,
+      fovy: 60,
       aspect: canvas.width / canvas.height,
       near: 0.1,
       far: 100
@@ -60,16 +64,12 @@
     const group1 = new GroupNode(Matrix.translation(new Vector(1, 1, 0)));
     const sphereNode = new GroupNode(Matrix.identity());
     sphereNode.add(
-      new SphereNode(
-        new Vector(0.5, -0.8, 0, 1),
-        0.4,
-        new Vector(0.8, 0.4, 0.1, 1)
-      )
+      new SphereNode(new Vector(0, 0, 0, 1), 0.4, new Vector(0.8, 0.4, 0.1, 1))
     );
     group1.add(sphereNode);
     sceneGraph.add(group1);
 
-    let group2 = new GroupNode(Matrix.translation(new Vector(-0.7, -0.4, 0.1)));
+    let group2 = new GroupNode(Matrix.translation(new Vector(0, 0, 5)));
     let cubeNode = new GroupNode(Matrix.identity());
     cubeNode.add(
       new TextureBoxNode(
@@ -82,7 +82,7 @@
     sceneGraph.add(group2);
 
     let group3 = new GroupNode(Matrix.translation(new Vector(-6.0, 0.0, 3.0)));
-    let redCube = new GroupNode(Matrix.identity());
+    let redCube = new GroupNode(Matrix.rotation(new Vector(0, 1, 0), 180));
     redCube.add(
       new AABoxNode(
         new Vector(-1, -1, -1, 1),
@@ -104,7 +104,9 @@
     rasterSetupVisitor.setup($sceneGraph);
     animationNodes.add(new RotationNode(cubeNode, new Vector(0, 1, 0)));
     animationNodes.add(new BouncingNode(sphereNode, new Vector(0, 1, 0), 0.5));
-    animationNodes.add(new RotationNode(redCube, new Vector(0, 1, 0)));
+    animationNodes.add(new ManualRotationNode(redCube, new Vector(0, 1, 0)));
+    animationNodes.add(new ManualRotationNode(group3, new Vector(0, 1, 0)));
+    animationNodes.add(new RotationNode(sphereNode, new Vector(0, 1, 0)));
 
     function simulate(deltaT) {
       for (let animationNode of $animationNodes) {
@@ -128,17 +130,17 @@
   });
 
   const handleKeyDown = event => {
-    if (event.code == "ArrowUp") {
+    if (event.key == "ArrowUp") {
       $animationNodes.forEach(node => node.toggleActive());
       return;
     }
-    if (!$keysPressed.get(event.code)) {
-      keysPressed.keydown(event.code);
+    if (!$keysPressed.get(event.key)) {
+      keysPressed.keydown(event.key);
     }
   };
 
   const handleKeyUp = event => {
-    keysPressed.keyup(event.code);
+    keysPressed.keyup(event.key);
   };
 </script>
 
