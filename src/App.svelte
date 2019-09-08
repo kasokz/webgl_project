@@ -7,7 +7,8 @@
     animationNodes,
     keysPressed,
     camera,
-    selectedNode
+    selectedNode,
+    mouseOffsets
   } from "./state/stores.js";
 
   import vertexShader from "./shaders/raster-vertex-shader.glsl";
@@ -22,7 +23,8 @@
     SphereNode,
     TextureBoxNode,
     AABoxNode,
-    PyramidNode
+    PyramidNode,
+    CameraNode
   } from "./scenegraph/nodes.js";
   import {
     RasterVisitor,
@@ -34,6 +36,7 @@
     RotationNode,
     BouncingNode,
     ManualRotationNode,
+    FreeFlightNode,
     animationNodeClasses
   } from "./scenegraph/animation-nodes.js";
 
@@ -51,18 +54,9 @@
 
   onMount(() => {
     const webgl = canvas.getContext("webgl");
+
     rasterVisitor = new RasterVisitor(webgl);
     rasterSetupVisitor = new RasterSetupVisitor(webgl);
-
-    camera.set({
-      eye: new Vector(0, 0, -1, 1),
-      center: new Vector(0, 0, 0, 1),
-      up: new Vector(0, 1, 0, 0),
-      fovy: 60,
-      aspect: canvas.width / canvas.height,
-      near: 0.1,
-      far: 100
-    });
 
     // initialize scene graph
     sceneGraph.set(
@@ -116,16 +110,9 @@
         new Vector(0.8, 0, 0, 1)
       )
     );
-    group3.add(redCube);
-    sceneGraph.add(group3);
-
-    let group4 = new GroupNode(
-      "group4",
-      Matrix.translation(new Vector(6.0, 0, 3.0))
-    );
     let pyramidNode = new GroupNode(
       "pyramidNode",
-      Matrix.rotation(new Vector(0, 0, 1), 90)
+      Matrix.translation(new Vector(3, 0, 3))
     );
     pyramidNode.add(
       new PyramidNode(
@@ -136,8 +123,24 @@
         new Vector(0, 0.6, 0, 1)
       )
     );
-    group4.add(pyramidNode);
-    sceneGraph.add(group4);
+    group3.add(redCube);
+    group3.add(pyramidNode);
+    sceneGraph.add(group3);
+
+    let cameraNode = new GroupNode("cameraNode", Matrix.identity());
+    cameraNode.add(
+      new CameraNode(
+        "camera",
+        new Vector(0, 0, -1, 1),
+        new Vector(0, 0, 0, 1),
+        new Vector(0, 1, 0, 0),
+        60,
+        canvas.width / canvas.height,
+        0.1,
+        100
+      )
+    );
+    sceneGraph.add(cameraNode);
 
     rasterVisitor.shader = new Shader(webgl, vertexShader, phongFragmentShader);
     rasterVisitor.textureshader = new Shader(
@@ -156,12 +159,11 @@
       new ManualRotationNode($sceneGraph, new Vector(0, 1, 0))
     );
     animationNodes.add(new RotationNode(sphereNode, new Vector(0, 1, 0)));
-    animationNodes.add(
-      new ManualRotationNode(pyramidNode, new Vector(1, 0, 0))
-    );
+    animationNodes.add(new ManualRotationNode(group1, new Vector(1, 0, 0)));
     animationNodes.add(
       new ManualRotationNode(pyramidNode, new Vector(0, 1, 0))
     );
+    animationNodes.add(new FreeFlightNode(cameraNode, 0.5));
 
     function simulate(deltaT) {
       for (let animationNode of $animationNodes) {
@@ -173,7 +175,7 @@
 
     const animateFunc = timestamp => {
       simulate(timestamp - lastTimestamp);
-      activeRenderer.render($sceneGraph, $camera, lightPositions);
+      activeRenderer.render($sceneGraph);
       lastTimestamp = timestamp;
       window.requestAnimationFrame(animateFunc);
     };
@@ -237,6 +239,17 @@
     );
     downloadButton.href = dataURL;
   };
+
+  const handleMouseMove = event => {
+    if (document.pointerLockElement === canvas) {
+      mouseOffsets.addX(event.movementX);
+      mouseOffsets.addY(event.movementY);
+    }
+  };
+
+  const handleCanvasClick = event => {
+    canvas.requestPointerLock();
+  };
 </script>
 
 <style>
@@ -288,6 +301,7 @@
     text-decoration: none;
     color: inherit;
   }
+
   input[type="file"] {
     width: 0.1px;
     height: 0.1px;
@@ -347,5 +361,10 @@
       <PhongConfigurator />
     </div>
   </div>
-  <canvas bind:this={canvas} width="1920" height="1080" />
+  <canvas
+    bind:this={canvas}
+    width="1920"
+    height="1080"
+    on:mousemove={handleMouseMove}
+    on:click={handleCanvasClick} />
 </div>

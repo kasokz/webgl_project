@@ -34,8 +34,8 @@
   <Slider
     bind:value={$phongConfiguration.shininess}
     name="Shininess"
-    min="0"
-    max="32"
-    step="0.5" />
+    min="0.1"
+    max="100"
+    step="0.1" />
 
 </div>

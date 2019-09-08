@@ -1,6 +1,7 @@
 import Matrix from '../math/matrix.js';
 import Vector from '../math/vector.js';
-import { selectedNode, keysPressed } from '../state/stores.js';
+import { selectedNode, keysPressed, mouseOffsets } from '../state/stores.js';
+import { get } from "svelte/store";
 
 /**
  * Class representing an Animation
@@ -129,20 +130,14 @@ export class ManualRotationNode extends AnimationNode {
    */
   simulate(deltaT) {
     if (this.active) {
-      const selectedUnsubscribe = selectedNode.subscribe(selected => {
-        if (selected === this.groupNode) {
-          const keysUnsubscribe = keysPressed.subscribe(keyState => {
-            if (keyState.get("a")) {
-              this.groupNode.matrix = Matrix.rotation(this.axis, -this.angle * deltaT / 1000).mul(this.groupNode.matrix);
-            }
-            if (keyState.get("d")) {
-              this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
-            }
-          })
-          keysUnsubscribe();
+      if (get(selectedNode) === this.groupNode) {
+        if (get(keysPressed).get("ArrowRight")) {
+          this.groupNode.matrix = Matrix.rotation(this.axis, -this.angle * deltaT / 1000).mul(this.groupNode.matrix);
         }
-      });
-      selectedUnsubscribe();
+        if (get(keysPressed).get("ArrowLeft")) {
+          this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+        }
+      }
     }
   }
 
@@ -160,8 +155,65 @@ export class ManualRotationNode extends AnimationNode {
   }
 }
 
+/**
+ * Class representing a Rotation Animation
+ * @extends AnimationNode
+ */
+export class FreeFlightNode extends AnimationNode {
+  /**
+   * Creates a new FreeFlightNode
+   * @param {GroupNode} groupNode - The group node to attach to
+   * @param {GroupNode} xAxisNode - The group node to attach to
+   * @param {GroupNode} yAxisNode - The group node to attach to
+   * @param {number} mouseSensitivity - The mouse sensitivity
+   */
+  constructor(groupNode, mouseSensitivity) {
+    super(groupNode);
+    this.mouseSensitivity = mouseSensitivity;
+  }
+
+  /**
+   * Advances the animation by deltaT
+   * @param  {number} deltaT - The time difference, the animation is advanced by
+   */
+  simulate(deltaT) {
+    if (this.active) {
+      if (get(keysPressed).get("a")) {
+        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(10 * deltaT / 1000)).mul(this.groupNode.matrix);
+      }
+      if (get(keysPressed).get("d")) {
+        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-10 * deltaT / 1000)).mul(this.groupNode.matrix);
+      }
+      if (get(keysPressed).get("w")) {
+        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(10 * deltaT / 1000)).mul(this.groupNode.matrix);
+      }
+      if (get(keysPressed).get("s")) {
+        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(-10 * deltaT / 1000)).mul(this.groupNode.matrix);
+      }
+      this.groupNode.matrix = Matrix.rotation(
+        this.groupNode.matrix.getLeftVector(), get(mouseOffsets).y * deltaT / 100 * this.mouseSensitivity).mul(this.groupNode.matrix);
+      this.groupNode.matrix = Matrix.rotation(
+        this.groupNode.matrix.getUpVector(), -get(mouseOffsets).x * deltaT / 100 * this.mouseSensitivity).mul(this.groupNode.matrix);
+      mouseOffsets.reset();
+    }
+  }
+
+  toJSON() {
+    return {
+      type: this.constructor.name,
+      groupNodeId: this.groupNode.id,
+      mouseSensitivity: this.mouseSensitivity
+    }
+  }
+
+  static fromJSON(obj) {
+    return new FreeFlightNode(null, obj.mouseSensitivity);
+  }
+}
+
 export const animationNodeClasses = {
   "RotationNode": RotationNode,
   "BouncingNode": BouncingNode,
-  "ManualRotationNode": ManualRotationNode
+  "ManualRotationNode": ManualRotationNode,
+  "FreeFlightNode": FreeFlightNode
 }

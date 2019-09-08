@@ -135,6 +135,55 @@ export default class RasterTextureBox extends TextureRasterizable {
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
     gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
     this.texCoords = uvBuffer;
+
+    this.normals = [
+      // front
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      0., 0., 1.,
+      // back
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      0., 0., -1.,
+      // right
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      1.0, 0., 0.,
+      // top
+      0., 1., 0.,
+      0., 1., 0.,
+      0., 1., 0.,
+      0., 1., 0.,
+      0., 1., 0.,
+      0., 1., 0.,
+      // left
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
+      -1.0, 0., 0.,
+      // bottom
+      0., -1., 0.,
+      0., -1., 0.,
+      0., -1., 0.,
+      0., -1., 0.,
+      0., -1., 0.,
+      0., -1., 0.
+    ];
+    const normalBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.normals), this.gl.STATIC_DRAW);
+    this.normalBuffer = normalBuffer;
   }
 
 }

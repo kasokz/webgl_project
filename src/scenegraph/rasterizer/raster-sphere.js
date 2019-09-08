@@ -13,7 +13,6 @@ export default class RasterSphere extends Rasterizable {
    * @param {Vector} color    - The color of the sphere
    */
   constructor(gl, center, radius, color) {
-    console.log(center, radius, color);
     super();
     this.gl = gl;
 

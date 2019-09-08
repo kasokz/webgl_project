@@ -25,34 +25,37 @@ export class RasterVisitor {
     this.matrixStack.top = function () {
       return this[this.length - 1];
     };
+    this.inverseMatrixStack = [Matrix.identity()];
+    this.inverseMatrixStack.top = function () {
+      return this[this.length - 1];
+    }
+    this.shouldRender = false;
+    this.camera = {};
   }
 
   /**
    * Renders the Scenegraph
    * @param  {Node} rootNode                 - The root node of the Scenegraph
-   * @param  {Object} camera                 - The camera used
-   * @param  {Array.<Vector>} lightPositions - The light light positions
    */
-  render(rootNode, camera, lightPositions) {
+  render(rootNode) {
     // clear
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.gl.clearColor(.0, .0, .0, .1)
-    this.setupCamera(camera);
 
+    this.shouldRender = false;
+    rootNode.accept(this);
+    this.setupCamera();
+    this.shouldRender = true;
     // traverse and render
     rootNode.accept(this);
   }
 
   /**
    * Helper function to setup camera matrices
-   * @param  {Object} camera - The camera used
    */
-  setupCamera(camera) {
-    if (camera) {
-      this.lookat = Matrix.lookat(camera.eye, camera.center, camera.up);
-
-      this.perspective = Matrix.perspective(camera.fovy, camera.aspect, camera.near, camera.far);
-    }
+  setupCamera() {
+    this.lookat = Matrix.lookat(this.camera.eye, this.camera.center, this.camera.up).mul(this.lookat);
+    this.perspective = Matrix.perspective(this.camera.fovy, this.camera.aspect, this.camera.near, this.camera.far);
   }
 
   /**
@@ -61,10 +64,12 @@ export class RasterVisitor {
    */
   visitGroupNode(node) {
     this.matrixStack.push(this.matrixStack.top().mul(node.matrix));
+    this.inverseMatrixStack.push(node.matrix.invert().mul(this.inverseMatrixStack.top()));
     node.children.forEach(child => {
       child.accept(this);
     });
     this.matrixStack.pop();
+    this.inverseMatrixStack.pop();
   }
 
   /**
@@ -72,27 +77,36 @@ export class RasterVisitor {
    * @param  {Node} node - The node to visit
    */
   visit(node) {
-    const shader = (node.rasterObject instanceof TextureRasterizable) ? this.textureshader : this.shader;
-    shader.use();
-    phongConfiguration.loadIntoShader(shader);
-    let M = shader.getUniformMatrix('M');
-    if (M) {
-      M.set(this.matrixStack.top());
+    if (this.shouldRender) {
+      const shader = (node.rasterObject instanceof TextureRasterizable) ? this.textureshader : this.shader;
+      shader.use();
+      phongConfiguration.loadIntoShader(shader);
+      let M = shader.getUniformMatrix('M');
+      if (M) {
+        M.set(this.matrixStack.top());
+      }
+      let V = shader.getUniformMatrix('V');
+      if (V) {
+        V.set(this.lookat);
+      }
+      let P = shader.getUniformMatrix('P');
+      if (P) {
+        P.set(this.perspective);
+      }
+      let N = shader.getUniformMatrix('N');
+      if (N) {
+        const modelViewMat = this.lookat.mul(this.matrixStack.top());
+        N.set(modelViewMat.invert().transpose());
+      }
+      node.rasterObject.render(shader);
     }
-    let V = shader.getUniformMatrix('V');
-    if (V) {
-      V.set(this.lookat);
+  }
+
+  visitCameraNode(node) {
+    if (!this.shouldRender) {
+      this.camera = node;
+      this.lookat = this.inverseMatrixStack.top();
     }
-    let P = shader.getUniformMatrix('P');
-    if (P) {
-      P.set(this.perspective);
-    }
-    let N = shader.getUniformMatrix('N');
-    if (N) {
-      const modelViewMat = this.lookat.mul(this.matrixStack.top());
-      N.set(modelViewMat.invert().transpose());
-    }
-    node.rasterObject.render(shader);
   }
 }
 
@@ -134,6 +148,9 @@ export class RasterSetupVisitor {
     for (let child of node.children) {
       child.accept(this);
     }
+  }
+
+  visitCameraNode(node) {
   }
 }
 

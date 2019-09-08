@@ -70,6 +70,18 @@ const createPhongConfiguration = () => {
   }
 }
 
+const createMouseMovement = () => {
+  const { subscribe, update, set } = writable({ x: 0, y: 0 });
+
+  return {
+    subscribe,
+    addX: (offsetX) => { update(offsets => { return { ...offsets, x: offsets.x + offsetX } }) },
+    addY: (offsetY) => { update(offsets => { return { ...offsets, y: offsets.y + offsetY } }) },
+    reset: () => set({ x: 0, y: 0 })
+  }
+}
+
+export const mouseOffsets = createMouseMovement();
 export const phongConfiguration = createPhongConfiguration();
 export const camera = writable({});
 export const keysPressed = createKeysPressed();

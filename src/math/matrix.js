@@ -17,6 +17,22 @@ export default class Matrix {
     }
   }
 
+  getLeftVector() {
+    return new Vector(this.getVal(0, 0), this.getVal(1, 0), this.getVal(2, 0), 0);
+  }
+
+  getUpVector() {
+    return new Vector(this.getVal(0, 1), this.getVal(1, 1), this.getVal(2, 1), 0);
+  }
+
+  getForwardVector() {
+    return new Vector(this.getVal(0, 2), this.getVal(1, 2), this.getVal(2, 2), 0);
+  }
+
+  getTranslationVector() {
+    return new Vector(this.getVal(0, 3), this.getVal(1, 3), this.getVal(2, 3), 0);
+  }
+
   /**
    * Returns the value of the matrix at position row, col
    * @param  {number} row - The value's row

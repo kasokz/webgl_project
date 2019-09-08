@@ -127,13 +127,13 @@ export class AABoxNode extends Node {
   /**
    * Creates an axis aligned box
    * @param  {Vector} minPoint - The minimum Point
-   * @param  {Vector} maxPoint - The maximum Point
+   * @param  {Vector} center - The maximum Point
    * @param  {Vector} color    - The colour of the cube
    */
-  constructor(id, minPoint, maxPoint, color) {
+  constructor(id, minPoint, center, color) {
     super(id);
     this.minPoint = minPoint;
-    this.maxPoint = maxPoint;
+    this.center = center;
     this.color = color;
   }
 
@@ -142,16 +142,16 @@ export class AABoxNode extends Node {
       id: this.id,
       type: this.constructor.name,
       minPoint: this.minPoint,
-      maxPoint: this.maxPoint,
+      center: this.center,
       color: this.color
     }
   }
 
   static fromJSON(obj) {
     const minPoint = new Vector(obj.minPoint._x, obj.minPoint._y, obj.minPoint._z, obj.minPoint._w);
-    const maxPoint = new Vector(obj.maxPoint._x, obj.maxPoint._y, obj.maxPoint._z, obj.maxPoint._w);
+    const center = new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w);
     const color = new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w);
-    return new AABoxNode(obj.id, minPoint, maxPoint, color);
+    return new AABoxNode(obj.id, minPoint, center, color);
   }
 }
 
@@ -164,13 +164,13 @@ export class TextureBoxNode extends Node {
   /**
    * Creates an axis aligned box textured box
    * @param  {Vector} minPoint - The minimum Point
-   * @param  {Vector} maxPoint - The maximum Point
+   * @param  {Vector} center - The maximum Point
    * @param  {string} texture  - The image filename for the texture
    */
-  constructor(id, minPoint, maxPoint, texture) {
+  constructor(id, minPoint, center, texture) {
     super(id);
     this.minPoint = minPoint;
-    this.maxPoint = maxPoint;
+    this.center = center;
     this.texture = texture;
   }
 
@@ -179,15 +179,15 @@ export class TextureBoxNode extends Node {
       id: this.id,
       type: this.constructor.name,
       minPoint: this.minPoint,
-      maxPoint: this.maxPoint,
+      center: this.center,
       texture: this.texture
     }
   }
 
   static fromJSON(obj) {
     const minPoint = new Vector(obj.minPoint._x, obj.minPoint._y, obj.minPoint._z, obj.minPoint._w);
-    const maxPoint = new Vector(obj.maxPoint._x, obj.maxPoint._y, obj.maxPoint._z, obj.maxPoint._w);
-    return new TextureBoxNode(obj.id, minPoint, maxPoint, obj.texture);
+    const center = new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w);
+    return new TextureBoxNode(obj.id, minPoint, center, obj.texture);
   }
 }
 
@@ -199,13 +199,13 @@ export class PyramidNode extends Node {
   /**
    * Creates an axis aligned box textured box
    * @param  {Vector} minPoint - The minimum Point
-   * @param  {Vector} maxPoint - The maximum Point
+   * @param  {Vector} center - The maximum Point
    * @param  {string} texture  - The image filename for the texture
    */
-  constructor(id, minPoint, maxPoint, height, color) {
+  constructor(id, minPoint, center, height, color) {
     super(id);
     this.minPoint = minPoint;
-    this.maxPoint = maxPoint;
+    this.center = center;
     this.height = height;
     this.color = color;
   }
@@ -215,7 +215,7 @@ export class PyramidNode extends Node {
       id: this.id,
       type: this.constructor.name,
       minPoint: this.minPoint,
-      maxPoint: this.maxPoint,
+      center: this.center,
       height: this.height,
       color: this.color,
     }
@@ -223,9 +223,61 @@ export class PyramidNode extends Node {
 
   static fromJSON(obj) {
     const minPoint = new Vector(obj.minPoint._x, obj.minPoint._y, obj.minPoint._z, obj.minPoint._w);
-    const maxPoint = new Vector(obj.maxPoint._x, obj.maxPoint._y, obj.maxPoint._z, obj.maxPoint._w);
+    const center = new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w);
     const color = new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w);
-    return new PyramidNode(obj.id, minPoint, maxPoint, obj.height, color);
+    return new PyramidNode(obj.id, minPoint, center, obj.height, color);
+  }
+}
+
+export class CameraNode extends Node {
+
+  /**
+    * Creates an axis aligned box textured box
+    * @param  {Vector} eye - The minimum Point
+    * @param  {Vector} center - The maximum Point
+    * @param  {Vector} up  - The image filename for the texture
+    * @param  {number} fovy  - The image filename for the texture
+    * @param  {number} aspect  - The image filename for the texture
+    * @param  {number} near  - The image filename for the texture
+    * @param  {number} far  - The image filename for the texture
+ */
+  constructor(id, eye, center, up, fovy, aspect, near, far) {
+    super(id);
+    this.eye = eye;
+    this.center = center;
+    this.up = up;
+    this.fovy = fovy;
+    this.aspect = aspect;
+    this.near = near;
+    this.far = far;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      eye: this.eye,
+      center: this.center,
+      up: this.up,
+      fovy: this.fovy,
+      aspect: this.aspect,
+      near: this.near,
+      far: this.far,
+    }
+  }
+
+  accept(visitor) {
+    visitor.visitCameraNode(this);
+  }
+
+  static fromJSON(obj) {
+    const eye = new Vector(obj.eye._x, obj.eye._y, obj.eye._z, obj.eye._w);
+    const center = new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w);
+    const up = new Vector(obj.up._x, obj.up._y, obj.up._z, obj.up._w);
+    const fovy = obj.fovy;
+    const aspect = obj.aspect;
+    const near = obj.near;
+    const far = obj.near;
+    return new CameraNode(obj.id, eye, center, up, fovy, aspect, near, far);
   }
 }
 
@@ -234,5 +286,6 @@ export const nodeClasses = {
   "SphereNode": SphereNode,
   "AABoxNode": AABoxNode,
   "TextureBoxNode": TextureBoxNode,
-  "PyramidNode": PyramidNode
+  "PyramidNode": PyramidNode,
+  "CameraNode": CameraNode,
 }

@@ -6,6 +6,7 @@ uniform mat4 M;
 uniform mat4 V;
 uniform mat4 P;
 uniform mat4 N;
+
 uniform float kA;
 uniform float kD;
 uniform float kS;
