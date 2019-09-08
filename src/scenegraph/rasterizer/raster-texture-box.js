@@ -1,7 +1,9 @@
+import TextureRasterizable from "./texture-rasterizable";
+
 /**
  * A class creating buffers for a textured box to render it with WebGL
  */
-export default class RasterTextureBox {
+export default class RasterTextureBox extends TextureRasterizable {
   /**
    * Creates all WebGL buffers for the textured box
    *     6 ------- 7
@@ -17,6 +19,7 @@ export default class RasterTextureBox {
    * @param {Vector} maxPoint - The maximal x,y,z of the box
    */
   constructor(gl, minPoint, maxPoint, texture) {
+    super();
     this.gl = gl;
     const mi = minPoint;
     const ma = maxPoint;
@@ -134,27 +137,4 @@ export default class RasterTextureBox {
     this.texCoords = uvBuffer;
   }
 
-  /**
-   * Renders the textured box
-   * @param {Shader} shader - The shader used to render
-   */
-  render(shader) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
-    const positionLocation = shader.getAttributeLocation('a_position');
-    this.gl.enableVertexAttribArray(positionLocation);
-    this.gl.vertexAttribPointer(positionLocation, 3, this.gl.FLOAT, false, 0, 0);
-
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoords);
-    const textureLocation = shader.getAttributeLocation('a_texCoord');
-    this.gl.enableVertexAttribArray(textureLocation);
-    this.gl.vertexAttribPointer(textureLocation, 2, this.gl.FLOAT, false, 0, 0);
-
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texBuffer);
-    shader.getUniformInt('sampler').set(0);
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, this.elements);
-
-    this.gl.disableVertexAttribArray(positionLocation);
-    this.gl.disableVertexAttribArray(textureLocation);
-  }
 }

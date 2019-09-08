@@ -14,7 +14,9 @@ class Node {
    * Accepts a visitor according to the visitor pattern
    * @param  {Visitor} visitor - The visitor
    */
-  accept(visitor) { }
+  accept(visitor) {
+    visitor["visit" + this.constructor.name](this);
+  }
 }
 
 /**
@@ -32,14 +34,6 @@ export class GroupNode extends Node {
     super(id);
     this.matrix = mat;
     this.children = new Array();
-  }
-
-  /**
-   * Accepts a visitor according to the visitor pattern
-   * @param  {Visitor} visitor - The visitor
-   */
-  accept(visitor) {
-    visitor.visitGroupNode(this);
   }
 
   /**
@@ -102,14 +96,6 @@ export class SphereNode extends Node {
     this.color = color;
   }
 
-  /**
-   * Accepts a visitor according to the visitor pattern
-   * @param  {Visitor} visitor - The visitor
-   */
-  accept(visitor) {
-    visitor.visitSphereNode(this);
-  }
-
   toJSON() {
     return {
       id: this.id,
@@ -145,14 +131,6 @@ export class AABoxNode extends Node {
     this.minPoint = minPoint;
     this.maxPoint = maxPoint;
     this.color = color;
-  }
-
-  /**
-   * Accepts a visitor according to the visitor pattern
-   * @param  {Visitor} visitor - The visitor
-   */
-  accept(visitor) {
-    visitor.visitAABoxNode(this);
   }
 
   toJSON() {
@@ -192,14 +170,6 @@ export class TextureBoxNode extends Node {
     this.texture = texture;
   }
 
-  /**
-   * Accepts a visitor according to the visitor pattern
-   * @param  {Visitor} visitor - The visitor
-   */
-  accept(visitor) {
-    visitor.visitTextureBoxNode(this);
-  }
-
   toJSON() {
     return {
       id: this.id,
@@ -217,9 +187,48 @@ export class TextureBoxNode extends Node {
   }
 }
 
+/**
+ * Class representing a Pyramid node in the Scenegraph
+ * @extends Node
+ */
+export class PyramidNode extends Node {
+  /**
+   * Creates an axis aligned box textured box
+   * @param  {Vector} minPoint - The minimum Point
+   * @param  {Vector} maxPoint - The maximum Point
+   * @param  {string} texture  - The image filename for the texture
+   */
+  constructor(id, minPoint, maxPoint, height, color) {
+    super(id);
+    this.minPoint = minPoint;
+    this.maxPoint = maxPoint;
+    this.height = height;
+    this.color = color;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.constructor.name,
+      minPoint: this.minPoint,
+      maxPoint: this.maxPoint,
+      height: this.height,
+      color: this.color,
+    }
+  }
+
+  static fromJSON(obj) {
+    const minPoint = new Vector(obj.minPoint._x, obj.minPoint._y, obj.minPoint._z, obj.minPoint._w);
+    const maxPoint = new Vector(obj.maxPoint._x, obj.maxPoint._y, obj.maxPoint._z, obj.maxPoint._w);
+    const color = new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w);
+    return new PyramidNode(obj.id, minPoint, maxPoint, obj.height, color);
+  }
+}
+
 export const nodeClasses = {
   "GroupNode": GroupNode,
   "SphereNode": SphereNode,
   "AABoxNode": AABoxNode,
-  "TextureBoxNode": TextureBoxNode
+  "TextureBoxNode": TextureBoxNode,
+  "PyramidNode": PyramidNode
 }

@@ -4,6 +4,7 @@ import RasterTextureBox from '../../scenegraph/rasterizer/raster-texture-box.js'
 import Vector from '../../math/vector.js';
 import Matrix from '../../math/matrix.js';
 import { phongConfiguration } from "../../state/stores.js";
+import RasterPyramid from '../../scenegraph/rasterizer/raster-pyramid.js';
 
 /**
  * Class representing a Visitor that uses Rasterisation to render a Scenegraph
@@ -65,11 +66,7 @@ export class RasterVisitor {
     this.matrixStack.pop();
   }
 
-  /**
-   * Visits a sphere node
-   * @param  {Node} node - The node to visit
-   */
-  visitSphereNode(node) {
+  visitRasterizable(node) {
     this.shader.use();
     phongConfiguration.loadIntoShader(this.shader);
     let M = this.shader.getUniformMatrix('M');
@@ -89,7 +86,15 @@ export class RasterVisitor {
       const modelViewMat = this.lookat.mul(this.matrixStack.top());
       N.set(modelViewMat.invert().transpose());
     }
-    node.rastersphere.render(this.shader);
+    node.rasterObject.render(this.shader);
+  }
+
+  /**
+   * Visits a sphere node
+   * @param  {Node} node - The node to visit
+   */
+  visitSphereNode(node) {
+    this.visitRasterizable(node);
   }
 
   /**
@@ -97,26 +102,15 @@ export class RasterVisitor {
    * @param  {Node} node - The node to visit
    */
   visitAABoxNode(node) {
-    this.shader.use();
-    phongConfiguration.loadIntoShader(this.shader);
-    let M = this.shader.getUniformMatrix('M');
-    if (M) {
-      M.set(this.matrixStack.top());
-    }
-    let V = this.shader.getUniformMatrix('V');
-    if (V) {
-      V.set(this.lookat);
-    }
-    let P = this.shader.getUniformMatrix('P');
-    if (P) {
-      P.set(this.perspective);
-    }
-    let N = this.shader.getUniformMatrix('N');
-    if (N) {
-      const modelViewMat = this.lookat.mul(this.matrixStack.top());
-      N.set(modelViewMat.invert().transpose());
-    }
-    node.rasterbox.render(this.shader);
+    this.visitRasterizable(node);
+  }
+
+  /**
+   * Visits an axis aligned box node
+   * @param  {Node} node - The node to visit
+  */
+  visitPyramidNode(node) {
+    this.visitRasterizable(node);
   }
 
   /**
@@ -134,7 +128,7 @@ export class RasterVisitor {
     }
     this.textureshader.getUniformMatrix('V').set(this.lookat);
 
-    node.rastertexturebox.render(this.textureshader);
+    node.rasterObject.render(this.textureshader);
   }
 }
 
@@ -179,7 +173,7 @@ export class RasterSetupVisitor {
    * @param  {Node} node - The node to visit
    */
   visitSphereNode(node) {
-    node.rastersphere = new RasterSphere(this.gl, node.center, node.radius, node.color);
+    node.rasterObject = new RasterSphere(this.gl, node.center, node.radius, node.color);
   }
 
   /**
@@ -187,7 +181,7 @@ export class RasterSetupVisitor {
    * @param  {Node} node - The node to visit
    */
   visitAABoxNode(node) {
-    node.rasterbox = new RasterBox(this.gl, node.minPoint, node.maxPoint, node.color);
+    node.rasterObject = new RasterBox(this.gl, node.minPoint, node.maxPoint, node.color);
   }
 
   /**
@@ -196,11 +190,19 @@ export class RasterSetupVisitor {
    * @param  {Node} node - The node to visit
    */
   visitTextureBoxNode(node) {
-    node.rastertexturebox = new RasterTextureBox(
+    node.rasterObject = new RasterTextureBox(
       this.gl,
       node.minPoint,
       node.maxPoint,
       node.texture
     );
+  }
+
+  /**
+   * Visits pyramid node
+   * @param  {Node} node - The node to visit
+   */
+  visitPyramidNode(node) {
+    node.rasterObject = new RasterPyramid(this.gl, node.minPoint, node.maxPoint, node.height, node.color);
   }
 }

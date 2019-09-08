@@ -6,7 +6,8 @@
     sceneGraph,
     animationNodes,
     keysPressed,
-    camera
+    camera,
+    selectedNode
   } from "./state/stores.js";
 
   import vertexShader from "./shaders/raster-vertex-shader.glsl";
@@ -20,7 +21,8 @@
     GroupNode,
     SphereNode,
     TextureBoxNode,
-    AABoxNode
+    AABoxNode,
+    PyramidNode
   } from "./scenegraph/nodes.js";
   import {
     RasterVisitor,
@@ -117,6 +119,26 @@
     group3.add(redCube);
     sceneGraph.add(group3);
 
+    let group4 = new GroupNode(
+      "group4",
+      Matrix.translation(new Vector(6.0, 0, 3.0))
+    );
+    let pyramidNode = new GroupNode(
+      "pyramidNode",
+      Matrix.rotation(new Vector(0, 0, 1), 90)
+    );
+    pyramidNode.add(
+      new PyramidNode(
+        "pyarmid",
+        new Vector(-1, -1, -1, 1),
+        new Vector(1, -1, 1, 1),
+        5,
+        new Vector(0, 0.6, 0, 1)
+      )
+    );
+    group4.add(pyramidNode);
+    sceneGraph.add(group4);
+
     rasterVisitor.shader = new Shader(webgl, vertexShader, phongFragmentShader);
     rasterVisitor.textureshader = new Shader(
       webgl,
@@ -134,6 +156,12 @@
       new ManualRotationNode($sceneGraph, new Vector(0, 1, 0))
     );
     animationNodes.add(new RotationNode(sphereNode, new Vector(0, 1, 0)));
+    animationNodes.add(
+      new ManualRotationNode(pyramidNode, new Vector(1, 0, 0))
+    );
+    animationNodes.add(
+      new ManualRotationNode(pyramidNode, new Vector(0, 1, 0))
+    );
 
     function simulate(deltaT) {
       for (let animationNode of $animationNodes) {
@@ -178,6 +206,7 @@
         let parsed = JSON.parse(e.target.result);
         let sceneGraphObj = parsed.sceneGraph;
         let animationNodesArr = parsed.animationNodes;
+        $selectedNode = {};
         $sceneGraph = GroupNode.fromJSON(sceneGraphObj);
         rasterSetupVisitor.setup($sceneGraph);
         $animationNodes = [];
