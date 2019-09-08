@@ -15,7 +15,7 @@ class Node {
    * @param  {Visitor} visitor - The visitor
    */
   accept(visitor) {
-    visitor["visit" + this.constructor.name](this);
+    visitor.visit(this);
   }
 }
 
@@ -42,6 +42,10 @@ export class GroupNode extends Node {
    */
   add(childNode) {
     this.children.push(childNode);
+  }
+
+  accept(visitor) {
+    visitor.visitGroupNode(this);
   }
 
   toJSON() {

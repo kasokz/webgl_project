@@ -76,7 +76,7 @@ export default class RasterTextureBox extends TextureRasterizable {
 
     let cubeTexture = gl.createTexture();
     let cubeImage = new Image();
-    cubeImage.onload = function () {
+    cubeImage.onload = () => {
       gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cubeImage);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);

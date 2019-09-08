@@ -5,6 +5,7 @@ import Vector from '../../math/vector.js';
 import Matrix from '../../math/matrix.js';
 import { phongConfiguration } from "../../state/stores.js";
 import RasterPyramid from '../../scenegraph/rasterizer/raster-pyramid.js';
+import TextureRasterizable from '../../scenegraph/rasterizer/texture-rasterizable.js';
 
 /**
  * Class representing a Visitor that uses Rasterisation to render a Scenegraph
@@ -66,69 +67,32 @@ export class RasterVisitor {
     this.matrixStack.pop();
   }
 
-  visitRasterizable(node) {
-    this.shader.use();
-    phongConfiguration.loadIntoShader(this.shader);
-    let M = this.shader.getUniformMatrix('M');
-    if (M) {
-      M.set(this.matrixStack.top());
-    }
-    let V = this.shader.getUniformMatrix('V');
-    if (V) {
-      V.set(this.lookat);
-    }
-    let P = this.shader.getUniformMatrix('P');
-    if (P) {
-      P.set(this.perspective);
-    }
-    let N = this.shader.getUniformMatrix('N');
-    if (N) {
-      const modelViewMat = this.lookat.mul(this.matrixStack.top());
-      N.set(modelViewMat.invert().transpose());
-    }
-    node.rasterObject.render(this.shader);
-  }
-
   /**
    * Visits a sphere node
    * @param  {Node} node - The node to visit
    */
-  visitSphereNode(node) {
-    this.visitRasterizable(node);
-  }
-
-  /**
-   * Visits an axis aligned box node
-   * @param  {Node} node - The node to visit
-   */
-  visitAABoxNode(node) {
-    this.visitRasterizable(node);
-  }
-
-  /**
-   * Visits an axis aligned box node
-   * @param  {Node} node - The node to visit
-  */
-  visitPyramidNode(node) {
-    this.visitRasterizable(node);
-  }
-
-  /**
-   * Visits a textured box node
-   * @param  {Node} node - The node to visit
-   */
-  visitTextureBoxNode(node) {
-    this.textureshader.use();
-
-    this.textureshader.getUniformMatrix('M').set(this.matrixStack.top());
-
-    let P = this.textureshader.getUniformMatrix('P');
-    if (P && this.perspective) {
+  visit(node) {
+    const shader = (node.rasterObject instanceof TextureRasterizable) ? this.textureshader : this.shader;
+    shader.use();
+    phongConfiguration.loadIntoShader(shader);
+    let M = shader.getUniformMatrix('M');
+    if (M) {
+      M.set(this.matrixStack.top());
+    }
+    let V = shader.getUniformMatrix('V');
+    if (V) {
+      V.set(this.lookat);
+    }
+    let P = shader.getUniformMatrix('P');
+    if (P) {
       P.set(this.perspective);
     }
-    this.textureshader.getUniformMatrix('V').set(this.lookat);
-
-    node.rasterObject.render(this.textureshader);
+    let N = shader.getUniformMatrix('N');
+    if (N) {
+      const modelViewMat = this.lookat.mul(this.matrixStack.top());
+      N.set(modelViewMat.invert().transpose());
+    }
+    node.rasterObject.render(shader);
   }
 }
 
@@ -158,6 +122,10 @@ export class RasterSetupVisitor {
     rootNode.accept(this);
   }
 
+  visit(node) {
+    node.rasterObject = new rasterNodeClasses[node.constructor.name](this.gl, ...Object.values(node).slice(1));
+  }
+
   /**
    * Visits a group node
    * @param  {Node} node - The node to visit
@@ -167,42 +135,11 @@ export class RasterSetupVisitor {
       child.accept(this);
     }
   }
+}
 
-  /**
-   * Visits a sphere node
-   * @param  {Node} node - The node to visit
-   */
-  visitSphereNode(node) {
-    node.rasterObject = new RasterSphere(this.gl, node.center, node.radius, node.color);
-  }
-
-  /**
-   * Visits an axis aligned box node
-   * @param  {Node} node - The node to visit
-   */
-  visitAABoxNode(node) {
-    node.rasterObject = new RasterBox(this.gl, node.minPoint, node.maxPoint, node.color);
-  }
-
-  /**
-   * Visits a textured box node. Loads the texture
-   * and creates a uv coordinate buffer
-   * @param  {Node} node - The node to visit
-   */
-  visitTextureBoxNode(node) {
-    node.rasterObject = new RasterTextureBox(
-      this.gl,
-      node.minPoint,
-      node.maxPoint,
-      node.texture
-    );
-  }
-
-  /**
-   * Visits pyramid node
-   * @param  {Node} node - The node to visit
-   */
-  visitPyramidNode(node) {
-    node.rasterObject = new RasterPyramid(this.gl, node.minPoint, node.maxPoint, node.height, node.color);
-  }
+const rasterNodeClasses = {
+  "SphereNode": RasterSphere,
+  "AABoxNode": RasterBox,
+  "TextureBoxNode": RasterTextureBox,
+  "PyramidNode": RasterPyramid
 }
