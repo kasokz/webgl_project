@@ -6,7 +6,7 @@
 <style>
   .scenegraph_container {
     padding: 1em;
-    overflow-y: scroll;
+    overflow-y: auto;
     height: 100%;
   }
 </style>

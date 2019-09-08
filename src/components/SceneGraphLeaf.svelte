@@ -15,6 +15,12 @@
     padding: 0 0.5em 0 0.5em;
   }
 
+  span:hover {
+    border-radius: 10px;
+    background: yellow;
+    color: black;
+  }
+
   .active {
     border-radius: 10px;
     background: orange;

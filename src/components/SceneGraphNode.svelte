@@ -35,6 +35,10 @@
     font-weight: bold;
   }
 
+  span:hover {
+    text-decoration: underline;
+  }
+
   .dropDown {
     background: url(icons/arrow_drop_down.svg) 0 0.2em no-repeat;
     background-size: 1em 1em;
@@ -56,7 +60,7 @@
       AnimationNodes:
     </span>
     {#if showAnimations}
-      <ul class="children_container" transition:fly="{{duration: 100}}">
+      <ul class="children_container" transition:fly={{ duration: 100 }}>
         {#each $animationNodes.filter(aNode => aNode.groupNode === node) as animation}
           <div style="padding: 0 0.5em 0 0.5em;">
             {animation.constructor.name}
@@ -74,7 +78,7 @@
     ChildNodes:
   </span>
   {#if showChildren}
-    <ul class="children_container" transition:fly="{{duration: 100}}">
+    <ul class="children_container" transition:fly={{ duration: 100 }}>
       {#each node.children as child}
         {#if child instanceof GroupNode}
           <svelte:self node={child} />

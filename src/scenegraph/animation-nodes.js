@@ -170,9 +170,9 @@ export class FreeFlightNode extends AnimationNode {
   constructor(groupNode, mouseSensitivity) {
     super(groupNode);
     this.mouseSensitivity = mouseSensitivity;
-    this.currentAngleX = 0;
-    this.currentAngleY = 0;
-    this.currentPosition = new Vector(0, 0, 0, 0);
+    this.currentX = 0;
+    this.currentY = 0;
+    this.translationMatrix = Matrix.identity();
   }
 
   /**
@@ -182,31 +182,27 @@ export class FreeFlightNode extends AnimationNode {
   simulate(deltaT) {
     if (this.active) {
       if (get(keysPressed).get("a")) {
-        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(10 * deltaT / 1000)).mul(this.groupNode.matrix);
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
       }
       if (get(keysPressed).get("d")) {
-        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-10 * deltaT / 1000)).mul(this.groupNode.matrix);
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-10 * deltaT / 1000)).mul(this.translationMatrix);
       }
       if (get(keysPressed).get("w")) {
-        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(10 * deltaT / 1000)).mul(this.groupNode.matrix);
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
       }
       if (get(keysPressed).get("s")) {
-        this.groupNode.matrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(-10 * deltaT / 1000)).mul(this.groupNode.matrix);
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(-10 * deltaT / 1000)).mul(this.translationMatrix);
       }
-      const tempOldLocation = this.groupNode.matrix.getTranslationVector();
-      this.groupNode.matrix = Matrix.translation(tempOldLocation.mul(-1)).mul(this.groupNode.matrix);
-      this.groupNode.matrix = Matrix.rotation(new Vector(0, 1, 0), -this.currentAngleX).mul(this.groupNode.matrix);
-
-      this.groupNode.matrix = Matrix.rotation(
-        new Vector(1, 0, 0), get(mouseOffsets).y * deltaT / 100 * this.mouseSensitivity).mul(this.groupNode.matrix);
-
-      this.groupNode.matrix = Matrix.rotation(new Vector(0, 1, 0), this.currentAngleX).mul(this.groupNode.matrix);
-
-      this.groupNode.matrix = Matrix.rotation(
-        new Vector(0, 1, 0), -get(mouseOffsets).x * deltaT / 100 * this.mouseSensitivity).mul(this.groupNode.matrix);
-
-      this.currentAngleX + get(mouseOffsets).x;
-      this.groupNode.matrix = Matrix.translation(tempOldLocation).mul(this.groupNode.matrix);
+      if (get(keysPressed).get("q")) {
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
+      }
+      if (get(keysPressed).get("e")) {
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(-10 * deltaT / 1000)).mul(this.translationMatrix);
+      }
+      this.currentY += get(mouseOffsets).y * deltaT / 100 * this.mouseSensitivity;
+      this.currentX += -get(mouseOffsets).x * deltaT / 100 * this.mouseSensitivity;
+      this.groupNode.matrix = this.translationMatrix.mul(
+        Matrix.rotation(new Vector(0, 1, 0), this.currentX).mul(Matrix.rotation(new Vector(1, 0, 0), this.currentY)));
       mouseOffsets.reset();
     }
   }

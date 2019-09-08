@@ -143,10 +143,10 @@
     cameraNode.add(
       new CameraNode(
         "camera",
-        new Vector(0, 0, -1, 1),
+        new Vector(0, 0, -2, 1),
         new Vector(0, 0, 0, 1),
         new Vector(0, 1, 0, 0),
-        60,
+        75,
         canvas.width / canvas.height,
         0.1,
         100
@@ -169,18 +169,15 @@
     animationNodes.add(new ManualRotationNode(redCube, new Vector(0, 1, 0)));
     animationNodes.add(new ManualRotationNode(group3, new Vector(0, 1, 0)));
     animationNodes.add(
-      new ManualRotationNode($sceneGraph, new Vector(0, 1, 0))
-    );
-    animationNodes.add(
       new ManualRotationNode(pyramidNode, new Vector(0, 1, 0))
     );
     animationNodes.add(new FreeFlightNode(cameraNode, 0.5));
 
-    function simulate(deltaT) {
+    const simulate = deltaT => {
       for (let animationNode of $animationNodes) {
         animationNode.simulate(deltaT);
       }
-    }
+    };
 
     let lastTimestamp = performance.now();
 
@@ -303,7 +300,7 @@
 
   .sidebar__configurator {
     height: 50%;
-    overflow-y: scroll;
+    overflow-y: auto;
     box-shadow: 0.1em 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.5);
     background-color: rgba(255, 166, 0, 0.404);
   }
