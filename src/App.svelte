@@ -62,10 +62,7 @@
     sceneGraph.set(
       new GroupNode("root", Matrix.scaling(new Vector(0.2, 0.2, 0.2)))
     );
-    const group1 = new GroupNode(
-      "group1",
-      Matrix.translation(new Vector(1, 1, 0))
-    );
+
     const sphereNode = new GroupNode("sphereNode1", Matrix.identity());
     sphereNode.add(
       new SphereNode(
@@ -75,8 +72,20 @@
         new Vector(0.8, 0.4, 0.1, 1)
       )
     );
-    group1.add(sphereNode);
-    sceneGraph.add(group1);
+    const nose = new GroupNode(
+      "noseGroup",
+      Matrix.translation(new Vector(0, 0, 1))
+    );
+    nose.add(
+      new AABoxNode(
+        "nose",
+        new Vector(0.5, 0.5, 0.5, 1),
+        new Vector(-0.5, -0.5, -0.5, 1),
+        new Vector(0, 0, 1, 1)
+      )
+    );
+    sphereNode.add(nose);
+    sceneGraph.add(sphereNode);
 
     let group2 = new GroupNode(
       "group2",
@@ -127,7 +136,10 @@
     group3.add(pyramidNode);
     sceneGraph.add(group3);
 
-    let cameraNode = new GroupNode("cameraNode", Matrix.identity());
+    let cameraNode = new GroupNode(
+      "cameraNode",
+      Matrix.translation(new Vector(0, 0, -5))
+    );
     cameraNode.add(
       new CameraNode(
         "camera",
@@ -151,6 +163,7 @@
 
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
+    animationNodes.add(new ManualRotationNode(sphereNode, new Vector(0, 1, 0)));
     animationNodes.add(new RotationNode(cubeNode, new Vector(0, 1, 0)));
     animationNodes.add(new BouncingNode(sphereNode, new Vector(0, 1, 0), 0.5));
     animationNodes.add(new ManualRotationNode(redCube, new Vector(0, 1, 0)));
@@ -158,8 +171,6 @@
     animationNodes.add(
       new ManualRotationNode($sceneGraph, new Vector(0, 1, 0))
     );
-    animationNodes.add(new RotationNode(sphereNode, new Vector(0, 1, 0)));
-    animationNodes.add(new ManualRotationNode(group1, new Vector(1, 0, 0)));
     animationNodes.add(
       new ManualRotationNode(pyramidNode, new Vector(0, 1, 0))
     );
