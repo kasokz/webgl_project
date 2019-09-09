@@ -20,7 +20,6 @@ const createDemoSceneGraph = (canvas) => {
     "sphereNode1",
     Matrix.translation(new Vector(3, 0, 3))
   );
-  console.log(sphereNode.constructor.name);
   sphereNode.add(
     new SphereNode(
       "sphere1",
@@ -43,8 +42,6 @@ const createDemoSceneGraph = (canvas) => {
   );
   sphereNode.add(nose);
   sceneGraph.add(sphereNode);
-
-
 
   const clockTower = new GroupNode(
     "clockTower",
