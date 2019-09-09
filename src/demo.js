@@ -1,4 +1,4 @@
-import { GroupNode, SphereNode, AABoxNode, TextureBoxNode, PyramidNode, CameraNode } from './scenegraph/nodes.js'
+import { GroupNode, SphereNode, AABoxNode, TextureBoxNode, PyramidNode, CameraNode, LightNode } from './scenegraph/nodes.js'
 import {
   sceneGraph,
   animationNodes,
@@ -122,6 +122,7 @@ const createDemoSceneGraph = (canvas) => {
     )
   );
   sceneGraph.add(cameraNode);
+  sceneGraph.add(new LightNode("centerLight", new Vector(1, 0, 0, 1)));
 
   animationNodes.add(new RotationNode(clockHandRoot, new Vector(0, 0, 1)));
   animationNodes.add(new ManualRotationNode(sphereNode, new Vector(0, 1, 0)));

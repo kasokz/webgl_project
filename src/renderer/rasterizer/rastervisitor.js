@@ -41,12 +41,18 @@ export class RasterVisitor {
     // clear
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     this.gl.clearColor(.0, .0, .0, .1)
+    this.lightPositions = [];
 
     this.shouldRender = false;
+    this.lightSearch = false;
     rootNode.accept(this);
     this.setupCamera();
+
+    this.lightSearch = true;
+    rootNode.accept(this);
+    this.lightSearch = false;
+
     this.shouldRender = true;
-    // traverse and render
     rootNode.accept(this);
   }
 
@@ -81,31 +87,44 @@ export class RasterVisitor {
       const shader = (node.rasterObject instanceof TextureRasterizable) ? this.textureshader : this.shader;
       shader.use();
       phongConfiguration.loadIntoShader(shader);
-      let M = shader.getUniformMatrix('M');
+      const M = shader.getUniformMatrix('M');
       if (M) {
         M.set(this.matrixStack.top());
       }
-      let V = shader.getUniformMatrix('V');
+      const V = shader.getUniformMatrix('V');
       if (V) {
         V.set(this.lookat);
       }
-      let P = shader.getUniformMatrix('P');
+      const P = shader.getUniformMatrix('P');
       if (P) {
         P.set(this.perspective);
       }
-      let N = shader.getUniformMatrix('N');
+      const N = shader.getUniformMatrix('N');
       if (N) {
         const modelViewMat = this.lookat.mul(this.matrixStack.top());
         N.set(modelViewMat.invert().transpose());
       }
+      this.lightPositions.forEach((light, i) => {
+        console.log(light);
+        const lightPos = shader.getUniformVec3('lightPositions[' + i + ']');
+        if (lightPos) {
+          lightPos.set([light.x / light.w, light.y / light.w, light.z / light.w]);
+        }
+      })
       node.rasterObject.render(shader);
     }
   }
 
   visitCameraNode(node) {
-    if (!this.shouldRender) {
+    if (!this.shouldRender && !this.lightSearch) {
       this.camera = node;
       this.lookat = this.inverseMatrixStack.top();
+    }
+  }
+
+  visitLightNode(node) {
+    if (this.lightSearch) {
+      this.lightPositions.push(this.perspective.mul(this.lookat).mul(this.matrixStack.top()));
     }
   }
 }
@@ -151,6 +170,9 @@ export class RasterSetupVisitor {
   }
 
   visitCameraNode(node) {
+  }
+
+  visitLightNode(node) {
   }
 }
 

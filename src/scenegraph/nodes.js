@@ -27,9 +27,10 @@ class Node {
  */
 export class GroupNode extends Node {
   /**
-   * Constructor
-   * @param  {Matrix} mat - A matrix describing the node's transformation
-   */
+    * Constructor
+    * @param  {string} id - The id of this node
+    * @param  {Matrix} mat - A matrix describing the node's transformation
+  */
   constructor(id, mat) {
     super(id);
     this.matrix = mat;
@@ -88,11 +89,12 @@ export class GroupNode extends Node {
  */
 export class SphereNode extends Node {
   /**
-   * Creates a new Sphere with center and radius
-   * @param  {Vector} center - The center of the Sphere
-   * @param  {number} radius - The radius of the Sphere
-   * @param  {Vector} color  - The colour of the Sphere
-   */
+    * Creates a new Sphere with center and radius
+    * @param  {string} id - The id of this node
+    * @param  {Vector} center - The center of the Sphere
+    * @param  {number} radius - The radius of the Sphere
+    * @param  {Vector} color  - The colour of the Sphere
+  */
   constructor(id, center, radius, color) {
     super(id);
     this.center = center;
@@ -125,11 +127,12 @@ export class SphereNode extends Node {
  */
 export class AABoxNode extends Node {
   /**
-   * Creates an axis aligned box
-   * @param  {Vector} minPoint - The minimum Point
-   * @param  {Vector} center - The maximum Point
-   * @param  {Vector} color    - The colour of the cube
-   */
+    * Creates an axis aligned box
+    * @param  {string} id - The id of this node
+    * @param  {Vector} minPoint - The minimum Point
+    * @param  {Vector} center - The maximum Point
+    * @param  {Vector} color    - The colour of the cube
+  */
   constructor(id, minPoint, center, color) {
     super(id);
     this.minPoint = minPoint;
@@ -162,11 +165,12 @@ export class AABoxNode extends Node {
  */
 export class TextureBoxNode extends Node {
   /**
-   * Creates an axis aligned box textured box
-   * @param  {Vector} minPoint - The minimum Point
-   * @param  {Vector} center - The maximum Point
-   * @param  {string} texture  - The image filename for the texture
-   */
+    * Creates an axis aligned box textured box
+    * @param  {string} id - The id of this node
+    * @param  {Vector} minPoint - The minimum Point
+    * @param  {Vector} center - The maximum Point
+    * @param  {string} texture  - The image filename for the texture
+  */
   constructor(id, minPoint, center, texture) {
     super(id);
     this.minPoint = minPoint;
@@ -197,11 +201,12 @@ export class TextureBoxNode extends Node {
  */
 export class PyramidNode extends Node {
   /**
-   * Creates an axis aligned box textured box
-   * @param  {Vector} minPoint - The minimum Point
-   * @param  {Vector} center - The maximum Point
-   * @param  {string} texture  - The image filename for the texture
-   */
+    * Creates an axis aligned box textured box
+    * @param  {string} id - The id of this node
+    * @param  {Vector} minPoint - The minimum Point
+    * @param  {Vector} center - The maximum Point
+    * @param  {string} texture  - The image filename for the texture
+  */
   constructor(id, minPoint, center, height, color) {
     super(id);
     this.minPoint = minPoint;
@@ -232,14 +237,15 @@ export class PyramidNode extends Node {
 export class CameraNode extends Node {
 
   /**
-    * Creates an axis aligned box textured box
-    * @param  {Vector} eye - The minimum Point
-    * @param  {Vector} center - The maximum Point
-    * @param  {Vector} up  - The image filename for the texture
-    * @param  {number} fovy  - The image filename for the texture
-    * @param  {number} aspect  - The image filename for the texture
-    * @param  {number} near  - The image filename for the texture
-    * @param  {number} far  - The image filename for the texture
+    * Creates a camera node
+    * @param  {string} id - The id of this node
+    * @param  {Vector} eye - The eye position relative to center
+    * @param  {Vector} center - The center
+    * @param  {Vector} up  - The up vector relative to center
+    * @param  {number} fovy  - The field of view in y-axis
+    * @param  {number} aspect  - The aspect ratio
+    * @param  {number} near  - The distance where rendering begins
+    * @param  {number} far  - The distance where rendering stops
  */
   constructor(id, eye, center, up, fovy, aspect, near, far) {
     super(id);
@@ -282,6 +288,36 @@ export class CameraNode extends Node {
   }
 }
 
+export class LightNode extends Node {
+
+  /**
+    * Creates a light node
+    * @param  {string} id - The id of this node
+    * @param  {Vector} color - The light color
+ */
+  constructor(id, color) {
+    super(id);
+    this.color = color;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.constructor.name,
+      color: this.color,
+    }
+  }
+
+  accept(visitor) {
+    visitor.visitLightNode(this);
+  }
+
+  static fromJSON(obj) {
+    const color = new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w);
+    return new LightNode(obj.id, color);
+  }
+}
+
 export const nodeClasses = {
   "GroupNode": GroupNode,
   "SphereNode": SphereNode,
@@ -289,4 +325,5 @@ export const nodeClasses = {
   "TextureBoxNode": TextureBoxNode,
   "PyramidNode": PyramidNode,
   "CameraNode": CameraNode,
+  "LightNode": LightNode,
 }
