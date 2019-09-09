@@ -1,12 +1,11 @@
 <script>
   import SceneGraph from "./components/SceneGraph.svelte";
   import PhongConfigurator from "./components/PhongConfigurator.svelte";
-  import { onMount, onDestroy, tick } from "svelte";
+  import { onMount } from "svelte";
   import {
     sceneGraph,
     animationNodes,
     keysPressed,
-    camera,
     selectedNode,
     mouseOffsets
   } from "./state/stores.js";
@@ -19,140 +18,34 @@
   import Vector from "./math/vector.js";
   import Matrix from "./math/matrix.js";
   import {
-    GroupNode,
-    SphereNode,
-    TextureBoxNode,
-    AABoxNode,
-    PyramidNode,
-    CameraNode
-  } from "./scenegraph/nodes.js";
-  import {
     RasterVisitor,
     RasterSetupVisitor
   } from "./renderer/rasterizer/rastervisitor.js";
   import RayVisitor from "./renderer/raytracer/rayvisitor.js";
   import Shader from "./shaders/shader.js";
+  import { GroupNode } from "./scenegraph/nodes.js";
   import {
-    RotationNode,
-    BouncingNode,
-    ManualRotationNode,
     FreeFlightNode,
     animationNodeClasses
   } from "./scenegraph/animation-nodes.js";
+  import createDemoSceneGraph from "./demo.js";
 
   let fileInput;
   let downloadButton;
-  let unsubscribeSceneGraph;
   let dataURL;
   let canvas;
   let activeRenderer;
   let rasterVisitor;
   let rasterSetupVisitor;
-  let lightPositions = [new Vector(1, 1, -1, 1)];
 
   const toggleRenderer = () => {};
 
   onMount(() => {
     const webgl = canvas.getContext("webgl");
-
     rasterVisitor = new RasterVisitor(webgl);
     rasterSetupVisitor = new RasterSetupVisitor(webgl);
 
-    // initialize scene graph
-    sceneGraph.set(
-      new GroupNode("root", Matrix.scaling(new Vector(0.2, 0.2, 0.2)))
-    );
-
-    const sphereNode = new GroupNode("sphereNode1", Matrix.identity());
-    sphereNode.add(
-      new SphereNode(
-        "sphere1",
-        new Vector(0, 0, 0, 1),
-        0.5,
-        new Vector(0.8, 0.4, 0.1, 1)
-      )
-    );
-    const nose = new GroupNode(
-      "noseGroup",
-      Matrix.translation(new Vector(0, 0, 1))
-    );
-    nose.add(
-      new AABoxNode(
-        "nose",
-        new Vector(0.5, 0.5, 0.5, 1),
-        new Vector(-0.5, -0.5, -0.5, 1),
-        new Vector(0, 0, 1, 1)
-      )
-    );
-    sphereNode.add(nose);
-    sceneGraph.add(sphereNode);
-
-    let group2 = new GroupNode(
-      "group2",
-      Matrix.translation(new Vector(0, 0, 5))
-    );
-    let cubeNode = new GroupNode("cubeNode1", Matrix.identity());
-    cubeNode.add(
-      new TextureBoxNode(
-        "textureBox1",
-        new Vector(-1, -1, -1, 1),
-        new Vector(1, 1, 1, 1),
-        "hci-logo.png"
-      )
-    );
-    group2.add(cubeNode);
-    sceneGraph.add(group2);
-
-    let group3 = new GroupNode(
-      "group3",
-      Matrix.translation(new Vector(-6.0, 0.0, 3.0))
-    );
-    let redCube = new GroupNode(
-      "redCubeNode",
-      Matrix.rotation(new Vector(0, 1, 0), 180)
-    );
-    redCube.add(
-      new AABoxNode(
-        "redCube",
-        new Vector(-1, -1, -1, 1),
-        new Vector(1, 1, 1, 1),
-        new Vector(0.8, 0, 0, 1)
-      )
-    );
-    let pyramidNode = new GroupNode(
-      "pyramidNode",
-      Matrix.translation(new Vector(3, 0, 3))
-    );
-    pyramidNode.add(
-      new PyramidNode(
-        "pyarmid",
-        new Vector(-1, -1, -1, 1),
-        new Vector(1, -1, 1, 1),
-        5,
-        new Vector(0, 0.6, 0, 1)
-      )
-    );
-    group3.add(redCube);
-    group3.add(pyramidNode);
-    sceneGraph.add(group3);
-
-    let cameraNode = new GroupNode(
-      "cameraNode",
-      Matrix.translation(new Vector(0, 0, -5))
-    );
-    cameraNode.add(
-      new CameraNode(
-        "camera",
-        new Vector(0, 0, -2, 1),
-        new Vector(0, 0, 0, 1),
-        new Vector(0, 1, 0, 0),
-        75,
-        canvas.width / canvas.height,
-        0.1,
-        100
-      )
-    );
-    sceneGraph.add(cameraNode);
+    createDemoSceneGraph(canvas);
 
     rasterVisitor.shader = new Shader(webgl, vertexShader, phongFragmentShader);
     rasterVisitor.textureshader = new Shader(
@@ -163,15 +56,6 @@
 
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
-    animationNodes.add(new ManualRotationNode(sphereNode, new Vector(0, 1, 0)));
-    animationNodes.add(new RotationNode(cubeNode, new Vector(0, 1, 0)));
-    animationNodes.add(new BouncingNode(sphereNode, new Vector(0, 1, 0), 0.5));
-    animationNodes.add(new ManualRotationNode(redCube, new Vector(0, 1, 0)));
-    animationNodes.add(new ManualRotationNode(group3, new Vector(0, 1, 0)));
-    animationNodes.add(
-      new ManualRotationNode(pyramidNode, new Vector(0, 1, 0))
-    );
-    animationNodes.add(new FreeFlightNode(cameraNode, 0.5));
 
     const simulate = deltaT => {
       for (let animationNode of $animationNodes) {
@@ -180,7 +64,6 @@
     };
 
     let lastTimestamp = performance.now();
-
     const animateFunc = timestamp => {
       simulate(timestamp - lastTimestamp);
       activeRenderer.render($sceneGraph);
@@ -227,6 +110,7 @@
         });
       };
       fileReader.readAsText(newSelection);
+      event.target.value = "";
     }
   };
 
@@ -255,8 +139,23 @@
     }
   };
 
-  const handleCanvasClick = event => {
+  const handlePointerLockChange = event => {
+    if (
+      document.pointerLockElement !== canvas &&
+      document.mozPointerLockElement !== canvas
+    ) {
+      $animationNodes
+        .filter(node => node instanceof FreeFlightNode)
+        .forEach(node => (node.active = false));
+    }
+  };
+  document.addEventListener("pointerlockchange", handlePointerLockChange);
+
+  const startFreeFlight = event => {
     canvas.requestPointerLock();
+    $animationNodes
+      .filter(node => node instanceof FreeFlightNode)
+      .forEach(node => (node.active = true));
   };
 </script>
 
@@ -328,6 +227,13 @@
     </a>
     <div class="header__button-group">
       <button
+        id="freeflight_toggle"
+        type="button"
+        class="btn btn-primary"
+        on:click={startFreeFlight}>
+        Start free flight
+      </button>
+      <button
         id="renderer_toggle"
         type="button"
         class="btn btn-primary"
@@ -373,6 +279,5 @@
     bind:this={canvas}
     width="1920"
     height="1080"
-    on:mousemove={handleMouseMove}
-    on:click={handleCanvasClick} />
+    on:mousemove={handleMouseMove} />
 </div>

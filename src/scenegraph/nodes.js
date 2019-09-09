@@ -255,6 +255,7 @@ export class CameraNode extends Node {
   toJSON() {
     return {
       id: this.id,
+      type: this.constructor.name,
       eye: this.eye,
       center: this.center,
       up: this.up,
@@ -276,7 +277,7 @@ export class CameraNode extends Node {
     const fovy = obj.fovy;
     const aspect = obj.aspect;
     const near = obj.near;
-    const far = obj.near;
+    const far = obj.far;
     return new CameraNode(obj.id, eye, center, up, fovy, aspect, near, far);
   }
 }

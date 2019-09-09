@@ -38,6 +38,8 @@ export class RotationNode extends AnimationNode {
     super(groupNode);
     this.angle = 90;
     this.axis = axis;
+    this.origin = groupNode.matrix.transpose().transpose();
+    this.currentAngle = 0;
   }
 
   /**
@@ -46,7 +48,8 @@ export class RotationNode extends AnimationNode {
    */
   simulate(deltaT) {
     if (this.active) {
-      this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+      this.currentAngle += (this.angle * deltaT / 1000) % 360;
+      this.groupNode.matrix = Matrix.rotation(this.axis, this.currentAngle).mul(this.origin);
     }
   }
 
@@ -75,11 +78,14 @@ export class BouncingNode extends AnimationNode {
    * @param {Vector} axis         - The axis to rotate around
    * @param {number} distance     - The distance to move on the axis
    */
-  constructor(groupNode, axis, distance) {
+  constructor(groupNode, axis, distance, speed) {
     super(groupNode);
     this.distance = distance;
+    this.speed = speed;
     this.axis = axis;
     this.value = 0;
+    this.translation = Matrix.identity();
+    this.origin = groupNode.matrix.transpose().transpose();
   }
 
   /**
@@ -88,8 +94,8 @@ export class BouncingNode extends AnimationNode {
    */
   simulate(deltaT) {
     if (this.active) {
-      this.value += deltaT / 200;
-      this.groupNode.matrix = Matrix.translation(this.axis.mul(Math.sin(this.value) / 10 * this.distance)).mul(this.groupNode.matrix);
+      this.value += deltaT / (1000 / this.speed);
+      this.groupNode.matrix = this.translation.mul(Matrix.translation(this.axis.mul(Math.sin(this.value) * this.distance))).mul(this.origin);
     }
   }
 
@@ -122,6 +128,8 @@ export class ManualRotationNode extends AnimationNode {
     super(groupNode);
     this.angle = 90;
     this.axis = axis;
+    this.origin = this.groupNode.matrix.transpose().transpose();
+    this.currentAngle = 0;
   }
 
   /**
@@ -132,11 +140,13 @@ export class ManualRotationNode extends AnimationNode {
     if (this.active) {
       if (get(selectedNode) === this.groupNode) {
         if (get(keysPressed).get("ArrowRight")) {
-          this.groupNode.matrix = Matrix.rotation(this.axis, -this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+          this.currentAngle += (-this.angle * deltaT / 1000) % 360;
         }
         if (get(keysPressed).get("ArrowLeft")) {
-          this.groupNode.matrix = Matrix.rotation(this.axis, this.angle * deltaT / 1000).mul(this.groupNode.matrix);
+          this.currentAngle += (this.angle * deltaT / 1000) % 360;
         }
+        this.groupNode.matrix = Matrix.rotation(this.axis, this.currentAngle).mul(this.origin);
+
       }
     }
   }
@@ -170,9 +180,11 @@ export class FreeFlightNode extends AnimationNode {
   constructor(groupNode, mouseSensitivity) {
     super(groupNode);
     this.mouseSensitivity = mouseSensitivity;
+    this.origin = this.groupNode.matrix.transpose().transpose();
     this.currentX = 0;
     this.currentY = 0;
     this.translationMatrix = Matrix.identity();
+    this.active = false;
   }
 
   /**
@@ -202,7 +214,7 @@ export class FreeFlightNode extends AnimationNode {
       this.currentY += get(mouseOffsets).y * deltaT / 100 * this.mouseSensitivity;
       this.currentX += -get(mouseOffsets).x * deltaT / 100 * this.mouseSensitivity;
       this.groupNode.matrix = this.translationMatrix.mul(
-        Matrix.rotation(new Vector(0, 1, 0), this.currentX).mul(Matrix.rotation(new Vector(1, 0, 0), this.currentY)));
+        Matrix.rotation(new Vector(0, 1, 0), this.currentX).mul(Matrix.rotation(new Vector(1, 0, 0), this.currentY))).mul(this.origin);
       mouseOffsets.reset();
     }
   }
