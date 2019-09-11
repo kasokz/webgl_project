@@ -78,10 +78,6 @@
   });
 
   const handleKeyDown = event => {
-    if (event.key == "ArrowUp") {
-      $animationNodes.forEach(node => node.toggleActive());
-      return;
-    }
     if (!$keysPressed.get(event.key)) {
       keysPressed.keydown(event.key);
     }

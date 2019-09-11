@@ -95,7 +95,9 @@ export class BouncingNode extends AnimationNode {
   simulate(deltaT) {
     if (this.active) {
       this.value += deltaT / (1000 / this.speed);
-      this.groupNode.matrix = this.translation.mul(Matrix.translation(this.axis.mul(Math.sin(this.value) * this.distance))).mul(this.origin);
+      this.groupNode.matrix = this.translation.mul(
+        Matrix.translation(this.axis.mul(Math.sin(this.value) * this.distance))).mul(
+          this.origin);
     }
   }
 
@@ -165,6 +167,55 @@ export class ManualRotationNode extends AnimationNode {
   }
 }
 
+export class DriverNode extends AnimationNode {
+  /**
+     * Creates a new FreeFlightNode
+     * @param {GroupNode} groupNode - The group node to attach to
+     */
+  constructor(groupNode) {
+    super(groupNode);
+    this.origin = this.groupNode.matrix.transpose().transpose();
+    this.translationMatrix = Matrix.identity();
+    this.active = true;
+  }
+
+  /**
+    * Advances the animation by deltaT
+    * @param  {number} deltaT - The time difference, the animation is advanced by
+    */
+  simulate(deltaT) {
+    if (this.active) {
+      if (get(selectedNode) === this.groupNode) {
+        if (get(keysPressed).get("ArrowRight")) {
+          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-deltaT / 1000)).mul(this.translationMatrix);
+        }
+        if (get(keysPressed).get("ArrowLeft")) {
+          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(deltaT / 1000)).mul(this.translationMatrix);
+        }
+        if (get(keysPressed).get("ArrowUp")) {
+          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(deltaT / 1000)).mul(this.translationMatrix);
+        }
+        if (get(keysPressed).get("ArrowDown")) {
+          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(-deltaT / 1000)).mul(this.translationMatrix);
+        }
+        this.groupNode.matrix = this.translationMatrix.mul(this.origin);
+      }
+    }
+  }
+
+
+  toJSON() {
+    return {
+      type: this.constructor.name,
+      groupNodeId: this.groupNode.id,
+    }
+  }
+
+  static fromJSON(obj) {
+    return new ManualRotationNode(obj.groupNodeId);
+  }
+}
+
 /**
  * Class representing a Rotation Animation
  * @extends AnimationNode
@@ -173,8 +224,6 @@ export class FreeFlightNode extends AnimationNode {
   /**
    * Creates a new FreeFlightNode
    * @param {GroupNode} groupNode - The group node to attach to
-   * @param {GroupNode} xAxisNode - The group node to attach to
-   * @param {GroupNode} yAxisNode - The group node to attach to
    * @param {number} mouseSensitivity - The mouse sensitivity
    */
   constructor(groupNode, mouseSensitivity) {
@@ -236,5 +285,6 @@ export const animationNodeClasses = {
   "RotationNode": RotationNode,
   "BouncingNode": BouncingNode,
   "ManualRotationNode": ManualRotationNode,
-  "FreeFlightNode": FreeFlightNode
+  "FreeFlightNode": FreeFlightNode,
+  "DriverNode": DriverNode,
 }
