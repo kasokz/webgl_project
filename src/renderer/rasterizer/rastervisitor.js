@@ -6,6 +6,7 @@ import Matrix from '../../math/matrix.js';
 import { phongConfiguration } from "../../state/stores.js";
 import RasterPyramid from '../../scenegraph/rasterizer/raster-pyramid.js';
 import TextureRasterizable from '../../scenegraph/rasterizer/texture-rasterizable.js';
+import RasterMesh from '../../scenegraph/rasterizer/raster-mesh.js';
 
 /**
  * Class representing a Visitor that uses Rasterisation to render a Scenegraph
@@ -105,12 +106,15 @@ export class RasterVisitor {
         N.set(modelViewMat.invert().transpose());
       }
       this.lightPositions.forEach((light, i) => {
-        console.log(light);
         const lightPos = shader.getUniformVec3('lightPositions[' + i + ']');
         if (lightPos) {
-          lightPos.set([light.x / light.w, light.y / light.w, light.z / light.w]);
+          lightPos.set(new Vector(light.x, light.y, light.z));
         }
       })
+      const lights = shader.getUniformInt("lights");
+      if (lights) {
+        lights.set(this.lightPositions.length);
+      }
       node.rasterObject.render(shader);
     }
   }
@@ -124,7 +128,7 @@ export class RasterVisitor {
 
   visitLightNode(node) {
     if (this.lightSearch) {
-      this.lightPositions.push(this.perspective.mul(this.lookat).mul(this.matrixStack.top()));
+      this.lightPositions.push(this.lookat.mul(this.matrixStack.top()).mul(new Vector(0, 0, 0, 1)));
     }
   }
 }
@@ -180,5 +184,6 @@ const rasterNodeClasses = {
   "SphereNode": RasterSphere,
   "AABoxNode": RasterBox,
   "TextureBoxNode": RasterTextureBox,
-  "PyramidNode": RasterPyramid
+  "PyramidNode": RasterPyramid,
+  "MeshNode": RasterMesh
 }

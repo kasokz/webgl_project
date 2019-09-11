@@ -1,4 +1,4 @@
-import { GroupNode, SphereNode, AABoxNode, TextureBoxNode, PyramidNode, CameraNode, LightNode } from './scenegraph/nodes.js'
+import { GroupNode, SphereNode, AABoxNode, TextureBoxNode, PyramidNode, CameraNode, LightNode, MeshNode } from './scenegraph/nodes.js'
 import {
   sceneGraph,
   animationNodes,
@@ -108,7 +108,11 @@ const createDemoSceneGraph = (canvas) => {
   clockHandRoot.add(clockFix);
   sceneGraph.add(clockTower);
 
-  let cameraNode = new GroupNode("cameraNode", Matrix.identity());
+  const monkeyGroup = new GroupNode("monkeyGroup", Matrix.translation(new Vector(3, 0, 3, 1)));
+  monkeyGroup.add(new MeshNode("monkey", "http://localhost:5000/monkey.obj", new Vector(1.0, 0.5, .03, 1)));
+  sceneGraph.add(monkeyGroup);
+
+  const cameraNode = new GroupNode("cameraNode", Matrix.identity());
   cameraNode.add(
     new CameraNode(
       "camera",
@@ -122,7 +126,9 @@ const createDemoSceneGraph = (canvas) => {
     )
   );
   sceneGraph.add(cameraNode);
-  sceneGraph.add(new LightNode("centerLight", new Vector(1, 0, 0, 1)));
+  const lightNode = new GroupNode("lightNode", Matrix.identity());
+  lightNode.add(new LightNode("centerLight", new Vector(1, 0, 0, 1)))
+  sceneGraph.add(lightNode);
 
   animationNodes.add(new RotationNode(clockHandRoot, new Vector(0, 0, 1)));
   animationNodes.add(new ManualRotationNode(sphereNode, new Vector(0, 1, 0)));

@@ -318,6 +318,35 @@ export class LightNode extends Node {
   }
 }
 
+export class MeshNode extends Node {
+  /**
+    * Creates a light node
+    * @param  {string} id - The id of this node
+    * @param  {string} url - The url to load the mesh from
+    * @param  {Vector} color - The light color
+ */
+  constructor(id, url, color) {
+    super(id);
+    this.url = url;
+    this.color = color;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      type: this.constructor.name,
+      url: this.url,
+      color: this.color,
+    }
+  }
+
+  static fromJSON(obj) {
+    const url = obj.url;
+    const color = new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w);
+    return new MeshNode(obj.id, url, color);
+  }
+}
+
 export const nodeClasses = {
   "GroupNode": GroupNode,
   "SphereNode": SphereNode,
@@ -326,4 +355,5 @@ export const nodeClasses = {
   "PyramidNode": PyramidNode,
   "CameraNode": CameraNode,
   "LightNode": LightNode,
+  "MeshNode": MeshNode,
 }

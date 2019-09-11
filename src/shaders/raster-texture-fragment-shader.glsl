@@ -1,7 +1,8 @@
 precision mediump float;
 
 uniform vec3 lightPositions[8];
-const int lights = 8;
+const int maxLights = 8;
+uniform int lights;
 
 uniform sampler2D sampler;
 varying vec2 v_texCoord;
@@ -32,8 +33,10 @@ float specular(vec3 lightPos) {
 void main( void ) {
   vec4 textureColor = texture2D(sampler, v_texCoord);
   gl_FragColor=vec4((textureColor*ambient()).xyz, 1.0);
-  for(int i = 0; i < lights; i++) {
-    gl_FragColor=vec4((textureColor* diffuse(lightPositions[i]) + textureColor* specular(lightPositions[i])).xyz, 1.0);
+  for(int i = 0; i < maxLights; i++) {
+    if (i < lights) {
+      gl_FragColor=vec4((textureColor* diffuse(lightPositions[i]) + textureColor* specular(lightPositions[i])).xyz, 1.0);
+    }
   }
   gl_FragColor.a = 1.;
 }
