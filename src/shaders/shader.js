@@ -89,6 +89,17 @@ export default class Shader {
   }
 
   /**
+     * Returns an object that can be used to set a vector on the GPU
+     * @param  {string} name - The name of the uniform to set
+     * @return {UniformVec4}   The resulting object
+     */
+  getUniformVec4(name) {
+    return new UniformVec4(this.gl,
+      this.gl.getUniformLocation(this.shaderProgram, name)
+    );
+  }
+
+  /**
    * Returns an object that can be used to set a vector on the GPU
    * @param  {string} name - The name of the uniform to set
    * @return {UniformVec3}   The resulting object
@@ -119,6 +130,21 @@ export default class Shader {
     return new UniformInt(this.gl,
       this.gl.getUniformLocation(this.shaderProgram, name)
     );
+  }
+
+  /**
+   * Wrapper function to retrieve a named Uniform location which can be accessed by the given function
+   * If the location is defined in the shader, also loads the given value into that location
+   * Gives no guarantee that the value and given function have matching types
+   * @param {Function} func - A function pointer
+   * @param {string} name - The location name
+   * @param {Object} value - The value which should be loaded into the location
+   */
+  trySet(func, name, value) {
+    const location = func(name);
+    if (location) {
+      location.set(value);
+    }
   }
 }
 
@@ -161,6 +187,27 @@ class UniformVec3 {
   set(vec) {
     this.gl.uniform3f(
       this.position, vec.x, vec.y, vec.z
+    );
+  }
+}
+
+/**
+ * Handler class to set uniform vectors
+ * in the shader program
+ */
+class UniformVec4 {
+  constructor(gl, position) {
+    this.gl = gl;
+    this.position = position;
+  }
+
+  /**
+   * Sends the given vector to the GPU as 4dimensional vector
+   * @param {Vector} vec - The vector to send
+   */
+  set(vec) {
+    this.gl.uniform4f(
+      this.position, vec.x, vec.y, vec.z, vec.w
     );
   }
 }

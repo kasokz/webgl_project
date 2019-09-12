@@ -1,113 +1,101 @@
-import Matrix from '../../math/matrix.js';
-import Sphere from '../../scenegraph/raytracer/sphere.js';
-import Intersection from './intersection.js';
-import Ray from './ray.js';
-import phong from './phong.js';
+import Visitor from '../visitor.js';
+import Shader from '../../shaders/shader.js';
+import Vector from '../../math/vector.js';
+import { SphereNode } from '../../scenegraph/nodes.js';
 
 /**
  * Class representing a Visitor that uses
  * Raytracing to render a Scenegraph
  */
-export default class RayVisitor {
+export default class RayVisitor extends Visitor {
   /**
    * Creates a new RayVisitor
-   * @param {Object} context - The 2D context to render to
-   * @param {number} width   - The width of the canvas
-   * @param {number} height  - The height of the canvas
+   * @param {Object} context - The webgl context to render to
+   * @param {Shader} shader - The raytracer shader
    */
-  constructor(context, width, height) {
-    this.context = context;
-    this.imageData = context.getImageData(0, 0, width, height);
-    this.matrixStack = [Matrix.identity()];
-    this.matrixStack.top = function () {
-      return this[this.length - 1];
-    };
+  constructor(context, shader) {
+    super(context);
+    this.shader = shader;
+  }
+
+  setupCamera() {
+    super.setupCamera();
+    this.fillBuffers();
   }
 
   /**
    * Renders the Scenegraph
-   * @param  {Node} rootNode                 - The root node of the Scenegraph
-   * @param  {Object} camera                 - The camera used
-   * @param  {Array.<Vector>} lightPositions - The light light positions
+   * @param  {Node} rootNode - The root node of the Scenegraph
    */
-  render(rootNode, camera, lightPositions) {
-    // clear
-    let data = this.imageData.data;
-    data.fill(0);
-    this.objects = [];
-
-    // build list of render objects
-    rootNode.accept(this);
-
-    // raytrace
-    const width = this.imageData.width;
-    const height = this.imageData.height;
-    for (let x = 0; x < width; x++) {
-      for (let y = 0; y < height; y++) {
-        const ray = Ray.makeRay(x, y, camera, width, height);
-        let minIntersection = new Intersection();
-        let minObj = null;
-        for (let shape of this.objects) {
-          const intersection = shape.intersect(ray);
-          if (intersection && intersection.closerThan(minIntersection)) {
-            minIntersection = intersection;
-            minObj = shape;
-          }
-        }
-        if (minObj) {
-          if (!minObj.color) {
-            setPixel(x, y, new Vector(0, 0, 0, 1));
-          } else {
-            let color = phong(minObj.color, minIntersection, lightPositions, 10, camera.eye);
-            data[4 * (width * y + x) + 0] = color.r * 255;
-            data[4 * (width * y + x) + 1] = color.g * 255;
-            data[4 * (width * y + x) + 2] = color.b * 255;
-            data[4 * (width * y + x) + 3] = color.a * 255;
-          }
-        }
-      }
-    }
-    this.context.putImageData(this.imageData, 0, 0);
-  }
-
-  /**
-   * Visits a group node
-   * @param  {Node} node - The node to visit
-   */
-  visitGroupNode(node) {
-    this.matrixStack.push(this.matrixStack.top().mul(node.matrix));
-    node.children.forEach(child => {
-      child.accept(this);
+  render(rootNode) {
+    this.sphereCenters = [];
+    this.sphereRadii = [];
+    this.sphereColors = [];
+    super.render(rootNode);
+    const shader = this.shader;
+    shader.use();
+    this.sphereCenters.forEach((center, i) => {
+      shader.trySet(shader.getUniformVec3.bind(shader), 'sphereCenters[' + i + ']', new Vector(center.x, center.y, center.z));
     });
-    this.matrixStack.pop();
+    this.sphereColors.forEach((color, i) => {
+      shader.trySet(shader.getUniformVec4.bind(shader), 'sphereColors[' + i + ']', new Vector(color.x, color.y, color.z));
+    });
+    this.sphereRadii.forEach((radius, i) => {
+      shader.trySet(shader.getUniformFloat.bind(shader), 'sphereRadii[' + i + ']', radius);
+    });
+    shader.trySet(shader.getUniformInt.bind(shader), "spheres", this.sphereCenters.length);
+    this.draw();
   }
 
-  /**
-   * Visits a sphere node
-   * @param  {Node} node - The node to visit
-   */
-  visitSphereNode(node) {
-    const mat = this.matrixStack.top();
-    this.objects.push(new Sphere(mat.mul(node.center), node.radius, node.color));
+  fillBuffers() {
+    const cameraTopLeft = this.camera.eye.add(new Vector(0, 1, 0, 0)).add(new Vector(-1, 0, 0, 0).mul(this.camera.aspect));
+    const cameraBottomLeft = this.camera.eye.add(new Vector(0, -1, 0, 0)).add(new Vector(-1, 0, 0, 0).mul(this.camera.aspect));
+    const cameraTopRight = this.camera.eye.add(new Vector(0, 1, 0, 0)).add(new Vector(1, 0, 0, 0).mul(this.camera.aspect));
+    const cameraBottomRight = this.camera.eye.add(new Vector(0, -1, 0, 0)).add(new Vector(1, 0, 0, 0).mul(this.camera.aspect));
+    const corners = [];
+    corners.push(cameraTopRight.x, cameraTopRight.y, cameraTopRight.z);
+    corners.push(cameraTopLeft.x, cameraTopLeft.y, cameraTopLeft.z);
+    corners.push(cameraBottomRight.x, cameraBottomRight.y, cameraBottomRight.z);
+    corners.push(cameraBottomLeft.x, cameraBottomLeft.y, cameraBottomLeft.z);
+    console.log(corners);
+
+    this.screenBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([
+      1.0, 1.0,
+      -1.0, 1.0,
+      1.0, -1.0,
+      -1.0, -1.0,
+    ]), this.gl.STATIC_DRAW);
+
+    this.plotPositionBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.plotPositionBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(corners), this.gl.STATIC_DRAW);
   }
 
-  /**
-   * Visits an axis aligned box node
-   * @param  {Node} node - The node to visit
-   */
-  visitAABoxNode(node) {
-    const mat = this.matrixStack.top();
-    // NOOP: not supported
-    // this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
+  draw() {
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenBuffer);
+    const aVertexPosition = this.shader.getAttributeLocation('a_vertexPosition');
+    this.gl.enableVertexAttribArray(aVertexPosition);
+    this.gl.vertexAttribPointer(aVertexPosition, 2, this.gl.FLOAT, false, 0, 0);
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.plotPositionBuffer);
+    const aPlotPosition = this.shader.getAttributeLocation('a_plotPosition');
+    this.gl.enableVertexAttribArray(aPlotPosition);
+    this.gl.vertexAttribPointer(aPlotPosition, 3, this.gl.FLOAT, false, 0, 0);
+
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+
+    this.gl.disableVertexAttribArray(aVertexPosition);
+    this.gl.disableVertexAttribArray(aPlotPosition);
   }
 
-  /**
-   * Visits a textured box node
-   * @param  {Node} node - The node to visit
-   */
-  visitTextureBoxNode(node) {
-    const mat = this.matrixStack.top();
-    // NOOP: not supported
-    // this.objects.push(new AABox(mat.mul(node.minPoint), mat.mul(node.maxPoint), node.color));
+  visit(node) {
+    if (!this.shouldRender || !(node instanceof SphereNode)) {
+      return;
+    }
+    this.sphereCenters.push(this.perspective.mul(this.lookat).mul(this.matrixStack.top()).mul(node.center));
+    this.sphereRadii.push(node.radius);
+    this.sphereColors.push(node.color);
   }
 }

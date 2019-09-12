@@ -10,10 +10,12 @@
     mouseOffsets
   } from "./state/stores.js";
 
-  import vertexShader from "./shaders/raster-vertex-shader.glsl";
-  import phongFragmentShader from "./shaders/raster-phong-fragment-shader.glsl";
-  import textureVertexShader from "./shaders/raster-texture-vertex-shader.glsl";
-  import textureFragmentShader from "./shaders/raster-texture-fragment-shader.glsl";
+  import vertexShader from "./shaders/rasterizer/raster-vertex-shader.glsl";
+  import phongFragmentShader from "./shaders/rasterizer/raster-phong-fragment-shader.glsl";
+  import textureVertexShader from "./shaders/rasterizer/raster-texture-vertex-shader.glsl";
+  import textureFragmentShader from "./shaders/rasterizer/raster-texture-fragment-shader.glsl";
+  import raytracerVertexShader from "./shaders/raytracer/raytracer-vertex-shader.glsl";
+  import raytracerFragmentShader from "./shaders/raytracer/raytracer-fragment-shader.glsl";
 
   import Vector from "./math/vector.js";
   import Matrix from "./math/matrix.js";
@@ -37,22 +39,30 @@
   let activeRenderer;
   let rasterVisitor;
   let rasterSetupVisitor;
+  let rayVisitor;
 
-  const toggleRenderer = () => {};
+  const toggleRenderer = () => {
+    if (activeRenderer === rasterVisitor) {
+      activeRenderer = rayVisitor;
+    } else {
+      activeRenderer = rasterVisitor;
+    }
+  };
 
   onMount(() => {
     const webgl = canvas.getContext("webgl");
-    rasterVisitor = new RasterVisitor(webgl);
-    rasterSetupVisitor = new RasterSetupVisitor(webgl);
-
     createDemoSceneGraph(canvas);
 
-    rasterVisitor.shader = new Shader(webgl, vertexShader, phongFragmentShader);
-    rasterVisitor.textureshader = new Shader(
+    rayVisitor = new RayVisitor(
       webgl,
-      textureVertexShader,
-      textureFragmentShader
+      new Shader(webgl, raytracerVertexShader, raytracerFragmentShader)
     );
+    rasterVisitor = new RasterVisitor(
+      webgl,
+      new Shader(webgl, vertexShader, phongFragmentShader),
+      new Shader(webgl, textureVertexShader, textureFragmentShader)
+    );
+    rasterSetupVisitor = new RasterSetupVisitor(webgl);
 
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
@@ -73,7 +83,8 @@
 
     Promise.all([
       rasterVisitor.shader.load(),
-      rasterVisitor.textureshader.load()
+      rasterVisitor.textureShader.load(),
+      rayVisitor.shader.load()
     ]).then(_ => window.requestAnimationFrame(animateFunc));
   });
 
