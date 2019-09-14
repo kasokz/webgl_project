@@ -143,14 +143,14 @@ const createDemoSceneGraph = (canvas) => {
   sceneGraph.add(lightNode);
   sceneGraph.add(sunNode);
 
-  animationNodes.add(new RotationNode(clockHandRoot, new Vector(0, 0, 1)));
-  animationNodes.add(new ManualRotationNode(sphereNode, new Vector(0, 1, 0)));
-  animationNodes.add(new RotationNode(cubeNode, new Vector(0, 1, 0)));
-  animationNodes.add(new BouncingNode(sphereNode, new Vector(0, 1, 0), 2, 5));
-  animationNodes.add(new ManualRotationNode(redCube, new Vector(0, 1, 0)));
-  animationNodes.add(new FreeFlightNode(cameraNode, 0.5));
-  animationNodes.add(new DriverNode(lightNode));
-  animationNodes.add(new RotationNode(sunNode, new Vector(0, 1, 1)));
+  animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1)));
+  animationNodes.add(new ManualRotationNode(sphereNode.id, new Vector(0, 1, 0)));
+  animationNodes.add(new RotationNode(cubeNode.id, new Vector(0, 1, 0)));
+  animationNodes.add(new BouncingNode(sphereNode.id, new Vector(0, 1, 0), 2, 5));
+  animationNodes.add(new ManualRotationNode(redCube.id, new Vector(0, 1, 0)));
+  animationNodes.add(new FreeFlightNode(cameraNode.id, 0.5));
+  animationNodes.add(new DriverNode(lightNode.id));
+  animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 1)));
 }
 
 export default createDemoSceneGraph;

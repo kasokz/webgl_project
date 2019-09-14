@@ -2,6 +2,8 @@ import Matrix from '../math/matrix.js';
 import Vector from '../math/vector.js';
 import { selectedNode, keysPressed, mouseOffsets } from '../state/stores.js';
 import { get } from "svelte/store";
+import { sceneGraph } from "../state/stores.js";
+import { GroupNode } from "../scenegraph/nodes.js";
 
 /**
  * Class representing an Animation
@@ -9,11 +11,22 @@ import { get } from "svelte/store";
 class AnimationNode {
   /**
    * Creates a new AnimationNode
-   * @param {GroupNode} groupNode - The GroupNode to attach to
    */
-  constructor(groupNode) {
-    this.groupNode = groupNode;
+  constructor(groupNodeId) {
     this.active = true;
+    const nodeStack = [];
+    nodeStack.push.apply(nodeStack, get(sceneGraph).children);
+    nodeStack.push(get(sceneGraph));
+    while (nodeStack.length > 0) {
+      const currNode = nodeStack.pop();
+      if (currNode.id == groupNodeId) {
+        this.groupNode = currNode;
+        break;
+      }
+      if (currNode instanceof GroupNode) {
+        nodeStack.push.apply(nodeStack, currNode.children);
+      }
+    }
   }
 
   /**
@@ -31,14 +44,14 @@ class AnimationNode {
 export class RotationNode extends AnimationNode {
   /**
    * Creates a new RotationNode
-   * @param {GroupNode} groupNode - The group node to attach to
+   * @param {string} groupNodeId - The group node to attach to
    * @param {Vector} axis         - The axis to rotate around
    */
-  constructor(groupNode, axis) {
-    super(groupNode);
+  constructor(groupNodeId, axis) {
+    super(groupNodeId);
     this.angle = 90;
     this.axis = axis;
-    this.origin = groupNode.matrix.transpose().transpose();
+    this.origin = this.groupNode.matrix.transpose().transpose();
     this.currentAngle = 0;
   }
 
@@ -57,13 +70,18 @@ export class RotationNode extends AnimationNode {
     return {
       type: this.constructor.name,
       groupNodeId: this.groupNode.id,
-      axis: this.axis
+      axis: this.axis,
+      currentAngle: this.currentAngle,
+      origin: this.origin,
     }
   }
 
   static fromJSON(obj) {
     const axis = new Vector(obj.axis._x, obj.axis._y, obj.axis._z, obj.axis._w);
-    return new RotationNode(null, axis);
+    const result = new RotationNode(obj.groupNodeId, axis);
+    result.currentAngle = obj.currentAngle;
+    result.origin.data = obj.origin.data;
+    return result;
   }
 }
 
@@ -73,19 +91,19 @@ export class RotationNode extends AnimationNode {
  */
 export class BouncingNode extends AnimationNode {
   /**
-   * Creates a new RotationNode
-   * @param {GroupNode} groupNode - The group node to attach to
+   * Creates a new BouncingNode
+   * @param {string} groupNodeId - The group node to attach to
    * @param {Vector} axis         - The axis to rotate around
    * @param {number} distance     - The distance to move on the axis
    */
-  constructor(groupNode, axis, distance, speed) {
-    super(groupNode);
+  constructor(groupNodeId, axis, distance, speed) {
+    super(groupNodeId);
     this.distance = distance;
     this.speed = speed;
     this.axis = axis;
     this.value = 0;
     this.translation = Matrix.identity();
-    this.origin = groupNode.matrix.transpose().transpose();
+    this.origin = this.groupNode.matrix.transpose().transpose();
   }
 
   /**
@@ -106,13 +124,21 @@ export class BouncingNode extends AnimationNode {
       type: this.constructor.name,
       groupNodeId: this.groupNode.id,
       axis: this.axis,
-      distance: this.distance
+      distance: this.distance,
+      speed: this.speed,
+      translation: this.translation,
+      value: this.value,
+      origin: this.origin,
     }
   }
 
   static fromJSON(obj) {
     const axis = new Vector(obj.axis._x, obj.axis._y, obj.axis._z, obj.axis._w);
-    return new BouncingNode(null, axis, obj.distance);
+    const result = new BouncingNode(obj.groupNodeId, axis, obj.distance, obj.speed);
+    result.translation.data = obj.translation.data;
+    result.value = obj.value;
+    result.origin.data = obj.origin.data;
+    return result;
   }
 }
 
@@ -126,8 +152,8 @@ export class ManualRotationNode extends AnimationNode {
    * @param {GroupNode} groupNode - The group node to attach to
    * @param {Vector} axis         - The axis to rotate around
    */
-  constructor(groupNode, axis) {
-    super(groupNode);
+  constructor(groupNodeId, axis) {
+    super(groupNodeId);
     this.angle = 90;
     this.axis = axis;
     this.origin = this.groupNode.matrix.transpose().transpose();
@@ -157,13 +183,18 @@ export class ManualRotationNode extends AnimationNode {
     return {
       type: this.constructor.name,
       groupNodeId: this.groupNode.id,
-      axis: this.axis
+      axis: this.axis,
+      currentAngle: this.currentAngle,
+      origin: this.origin,
     }
   }
 
   static fromJSON(obj) {
     const axis = new Vector(obj.axis._x, obj.axis._y, obj.axis._z, obj.axis._w);
-    return new ManualRotationNode(null, axis);
+    const result = new ManualRotationNode(obj.groupNodeId, axis);
+    result.currentAngle = obj.currentAngle;
+    result.origin.data = obj.origin.data;
+    return result;
   }
 }
 
@@ -172,8 +203,8 @@ export class DriverNode extends AnimationNode {
      * Creates a new FreeFlightNode
      * @param {GroupNode} groupNode - The group node to attach to
      */
-  constructor(groupNode) {
-    super(groupNode);
+  constructor(groupNodeId) {
+    super(groupNodeId);
     this.origin = this.groupNode.matrix.transpose().transpose();
     this.translationMatrix = Matrix.identity();
     this.active = true;
@@ -208,11 +239,16 @@ export class DriverNode extends AnimationNode {
     return {
       type: this.constructor.name,
       groupNodeId: this.groupNode.id,
+      translationMatrix: this.translationMatrix,
+      origin: this.origin,
     }
   }
 
   static fromJSON(obj) {
-    return new ManualRotationNode(obj.groupNodeId);
+    const result = new DriverNode(obj.groupNodeId);
+    result.translationMatrix.data = obj.translationMatrix.data;
+    result.origin.data = obj.origin.data;
+    return result;
   }
 }
 
@@ -226,8 +262,8 @@ export class FreeFlightNode extends AnimationNode {
    * @param {GroupNode} groupNode - The group node to attach to
    * @param {number} mouseSensitivity - The mouse sensitivity
    */
-  constructor(groupNode, mouseSensitivity) {
-    super(groupNode);
+  constructor(groupNodeId, mouseSensitivity) {
+    super(groupNodeId);
     this.mouseSensitivity = mouseSensitivity;
     this.origin = this.groupNode.matrix.transpose().transpose();
     this.currentX = 0;
@@ -272,12 +308,22 @@ export class FreeFlightNode extends AnimationNode {
     return {
       type: this.constructor.name,
       groupNodeId: this.groupNode.id,
-      mouseSensitivity: this.mouseSensitivity
+      mouseSensitivity: this.mouseSensitivity,
+      currentX: this.currentX,
+      currentY: this.currentY,
+      translationMatrix: this.translationMatrix,
+      origin: this.origin,
     }
   }
 
   static fromJSON(obj) {
-    return new FreeFlightNode(null, obj.mouseSensitivity);
+    const result = new FreeFlightNode(obj.groupNodeId, obj.mouseSensitivity);
+    result.currentX = obj.currentX;
+    result.currentY = obj.currentY;
+    result.translationMatrix = new Matrix([]);
+    result.translationMatrix.data = obj.translationMatrix.data;
+    result.origin.data = obj.origin.data;
+    return result;
   }
 }
 

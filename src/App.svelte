@@ -111,12 +111,9 @@
         $selectedNode = {};
         $sceneGraph = GroupNode.fromJSON(sceneGraphObj);
         rasterSetupVisitor.setup($sceneGraph);
-        $animationNodes = [];
-        animationNodesArr.forEach(anim => {
-          let newNode = animationNodeClasses[anim.type].fromJSON(anim);
-          newNode.groupNode = $sceneGraph.find(anim.groupNodeId);
-          animationNodes.add(newNode);
-        });
+        $animationNodes = animationNodesArr.map(anim =>
+          animationNodeClasses[anim.type].fromJSON(anim)
+        );
       };
       fileReader.readAsText(newSelection);
       event.target.value = "";
@@ -146,8 +143,15 @@
       mouseOffsets.addX(event.movementX);
       mouseOffsets.addY(event.movementY);
     }
-    mousePosition.setX(event.clientX);
-    mousePosition.setY(event.clientY);
+    const x = event.clientX;
+    const y = event.clientY;
+    const rect = event.target.getBoundingClientRect();
+    if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
+      const x_in_canvas = x - rect.left;
+      const y_in_canvas = rect.bottom - y;
+      mousePosition.setX(x_in_canvas);
+      mousePosition.setY(y_in_canvas);
+    }
   };
 
   const handleStop = event => {
