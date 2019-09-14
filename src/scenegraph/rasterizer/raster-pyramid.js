@@ -59,10 +59,9 @@ export default class RasterPyramid extends Rasterizable {
         new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]),
         new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]),
         new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]));
-      this.normals.push([...[normal.x, normal.y, normal.z]]);
-      this.normals.push([...[normal.x, normal.y, normal.z]]);
-      this.normals.push([...[normal.x, normal.y, normal.z]]);
-      this.normals = this.normals.flat(2);
+      this.normals.push(normal.x, normal.y, normal.z);
+      this.normals.push(normal.x, normal.y, normal.z);
+      this.normals.push(normal.x, normal.y, normal.z);
     }
 
     this.colors = [];

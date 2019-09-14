@@ -18,8 +18,9 @@ export default class RasterTextureBox extends TextureRasterizable {
    * @param {Vector} minPoint - The minimal x,y,z of the box
    * @param {Vector} maxPoint - The maximal x,y,z of the box
    */
-  constructor(gl, minPoint, maxPoint, texture) {
+  constructor(gl, minPoint, maxPoint, texture, normalMap) {
     super();
+    this.loaded = false;
     this.gl = gl;
     const mi = minPoint;
     const ma = maxPoint;
@@ -74,18 +75,36 @@ export default class RasterTextureBox extends TextureRasterizable {
     this.vertexBuffer = vertexBuffer;
     this.elements = vertices.length / 3;
 
-    let cubeTexture = gl.createTexture();
-    let cubeImage = new Image();
-    cubeImage.onload = () => {
-      gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cubeImage);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.bindTexture(gl.TEXTURE_2D, null);
-    };
-    cubeImage.src = texture;
-    this.texBuffer = cubeTexture;
+
+
+    new Promise((resolve, _) => {
+      let cubeTexture = gl.createTexture();
+      let cubeImage = new Image();
+      cubeImage.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cubeImage);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        resolve()
+      };
+      cubeImage.src = texture;
+      this.texBuffer = cubeTexture;
+    }).then(() => {
+      let normalMapTexture = gl.createTexture();
+      let normalMapImage = new Image();
+      normalMapImage.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, normalMapTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, normalMapImage);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+      };
+      normalMapImage.src = normalMap;
+      this.normalMapBuffer = normalMapTexture;
+    }).then(() => this.loaded = true);
 
     let uv = [
       // front

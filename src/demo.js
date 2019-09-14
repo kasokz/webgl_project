@@ -97,7 +97,8 @@ const createDemoSceneGraph = (canvas) => {
       "textureBox1",
       new Vector(-1, -1, -1, 1),
       new Vector(1, 1, 1, 1),
-      "hci-logo.png"
+      "hci-logo.png",
+      "wave_normal.png"
     )
   );
   group2.add(cubeNode);
@@ -125,7 +126,7 @@ const createDemoSceneGraph = (canvas) => {
       "camera",
       new Vector(0, 0, -2, 1),
       new Vector(0, 0, 0, 1),
-      new Vector(0, 1, 0, 0),
+      new Vector(0, 1, 0, 1),
       75,
       canvas.width / canvas.height,
       0.1,
@@ -135,8 +136,10 @@ const createDemoSceneGraph = (canvas) => {
   sceneGraph.add(cameraNode);
   const lightNode = new GroupNode("lightNode", Matrix.identity());
   lightNode.add(new LightNode("centerLight", new Vector(1, 0, 0, 1)))
+  lightNode.add(new SphereNode("centerLightVis", new Vector(0, 0, 0), 0.1, new Vector(1, 1, 1, 1)));
   const sunNode = new GroupNode("sunNode", Matrix.translation(new Vector(20, 0, 0, 1)));
   sunNode.add(new LightNode("sun", new Vector(1, 1, 0, 1)));
+  sunNode.add(new SphereNode("sunVis", new Vector(0, 0, 0), 0.1, new Vector(1, 1, 0, 1)));
   sceneGraph.add(lightNode);
   sceneGraph.add(sunNode);
 

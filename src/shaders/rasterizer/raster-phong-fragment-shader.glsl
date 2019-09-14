@@ -8,25 +8,25 @@ varying vec4 v_color;
 varying vec3 v_normal;
 varying vec3 v_pos;
 
-varying float v_kA;
-varying float v_kD;
-varying float v_kS;
-varying float v_shininess;
+uniform float kA;
+uniform float kD;
+uniform float kS;
+uniform float shininess;
 
 vec4 ambient() {
-  return v_color * v_kA;
+  return v_color * kA;
 }
 
 vec4 diffuse(vec3 lightPos) {
   float lambertian = max(dot(normalize(lightPos - v_pos), v_normal), .0);
-  return v_color * v_kD * lambertian;
+  return v_color * kD * lambertian;
 }
 
 vec4 specular(vec3 lightPos) {
   vec3 l = normalize(lightPos - v_pos);
   vec3 r = reflect(-l,v_normal);
   vec3 v = normalize(-v_pos);
-  return v_color * v_kS * pow(max(dot(r,v),0.0), v_shininess);
+  return v_color * kS * pow(max(dot(r,v),0.0), shininess);
 }
 
 void main(void){

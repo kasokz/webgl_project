@@ -29,8 +29,7 @@ export default {
 			sourceMap: true,
 			include: '**/*.glsl',
 			exclude: ['**/index.html'],
-		}
-		),
+		}),
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
 		// some cases you'll need additional configuration —

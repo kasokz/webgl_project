@@ -1,5 +1,9 @@
 export default class Rasterizable {
 
+  constructor() {
+    this.loaded = true;
+  }
+
   fillBuffers() {
     const vertexBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
@@ -27,26 +31,28 @@ export default class Rasterizable {
     * @param {Shader} shader - The shader used to render
   */
   render(shader) {
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
-    const positionLocation = shader.getAttributeLocation('a_position');
-    this.gl.enableVertexAttribArray(positionLocation);
-    this.gl.vertexAttribPointer(positionLocation, 3, this.gl.FLOAT, false, 0, 0);
+    if (this.loaded) {
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+      const positionLocation = shader.getAttributeLocation('a_position');
+      this.gl.enableVertexAttribArray(positionLocation);
+      this.gl.vertexAttribPointer(positionLocation, 3, this.gl.FLOAT, false, 0, 0);
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colourBuffer);
-    const colourLocation = shader.getAttributeLocation('a_colour');
-    this.gl.enableVertexAttribArray(colourLocation);
-    this.gl.vertexAttribPointer(colourLocation, 4, this.gl.FLOAT, false, 0, 0);
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colourBuffer);
+      const colourLocation = shader.getAttributeLocation('a_colour');
+      this.gl.enableVertexAttribArray(colourLocation);
+      this.gl.vertexAttribPointer(colourLocation, 4, this.gl.FLOAT, false, 0, 0);
 
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.normalBuffer);
-    const normalLocation = shader.getAttributeLocation('a_normal');
-    this.gl.enableVertexAttribArray(normalLocation);
-    this.gl.vertexAttribPointer(normalLocation, 3, this.gl.FLOAT, false, 0, 0);
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.normalBuffer);
+      const normalLocation = shader.getAttributeLocation('a_normal');
+      this.gl.enableVertexAttribArray(normalLocation);
+      this.gl.vertexAttribPointer(normalLocation, 3, this.gl.FLOAT, false, 0, 0);
 
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-    this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
+      this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+      this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
 
-    this.gl.disableVertexAttribArray(positionLocation);
-    this.gl.disableVertexAttribArray(colourLocation);
-    this.gl.disableVertexAttribArray(normalLocation);
+      this.gl.disableVertexAttribArray(positionLocation);
+      this.gl.disableVertexAttribArray(colourLocation);
+      this.gl.disableVertexAttribArray(normalLocation);
+    }
   }
 }

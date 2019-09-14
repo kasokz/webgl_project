@@ -171,11 +171,12 @@ export class TextureBoxNode extends Node {
     * @param  {Vector} center - The maximum Point
     * @param  {string} texture  - The image filename for the texture
   */
-  constructor(id, minPoint, center, texture) {
+  constructor(id, minPoint, center, texture, normalMap) {
     super(id);
     this.minPoint = minPoint;
     this.center = center;
     this.texture = texture;
+    this.normalMap = normalMap;
   }
 
   toJSON() {
@@ -184,14 +185,15 @@ export class TextureBoxNode extends Node {
       type: this.constructor.name,
       minPoint: this.minPoint,
       center: this.center,
-      texture: this.texture
+      texture: this.texture,
+      normalMap: this.normalMap
     }
   }
 
   static fromJSON(obj) {
     const minPoint = new Vector(obj.minPoint._x, obj.minPoint._y, obj.minPoint._z, obj.minPoint._w);
     const center = new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w);
-    return new TextureBoxNode(obj.id, minPoint, center, obj.texture);
+    return new TextureBoxNode(obj.id, minPoint, center, obj.texture, obj.normalMap);
   }
 }
 

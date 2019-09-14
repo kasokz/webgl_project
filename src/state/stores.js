@@ -1,4 +1,4 @@
-import { writable, derived } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { GroupNode } from '../scenegraph/nodes.js';
 import Matrix from '../math/matrix.js';
 
@@ -48,22 +48,10 @@ const createPhongConfiguration = () => {
     set,
     loadIntoShader: (shader) => {
       const unsubscribe = subscribe(phong => {
-        let kA = shader.getUniformFloat("kA");
-        if (kA) {
-          kA.set(phong.ambient);
-        }
-        let kD = shader.getUniformFloat("kD");
-        if (kD) {
-          kD.set(phong.diffuse)
-        }
-        let kS = shader.getUniformFloat("kS");
-        if (kS) {
-          kS.set(phong.specular);
-        }
-        let shininess = shader.getUniformFloat("shininess");
-        if (shininess) {
-          shininess.set(phong.shininess);
-        }
+        shader.trySet(shader.getUniformFloat.bind(shader), "kA", phong.ambient);
+        shader.trySet(shader.getUniformFloat.bind(shader), "kD", phong.diffuse);
+        shader.trySet(shader.getUniformFloat.bind(shader), "kS", phong.specular);
+        shader.trySet(shader.getUniformFloat.bind(shader), "shininess", phong.shininess);
       });
       unsubscribe();
     }
@@ -81,6 +69,18 @@ const createMouseMovement = () => {
   }
 }
 
+const createMousePosition = () => {
+  const { subscribe, update, set } = writable({ x: 0, y: 0 });
+
+  return {
+    subscribe,
+    setX: (mouseX) => { update(position => { return { ...position, x: mouseX } }) },
+    setY: (mouseY) => { update(position => { return { ...position, y: mouseY } }) },
+    reset: () => set({ x: 0, y: 0 })
+  }
+}
+
+export const mousePosition = createMousePosition();
 export const mouseOffsets = createMouseMovement();
 export const phongConfiguration = createPhongConfiguration();
 export const camera = writable({});

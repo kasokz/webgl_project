@@ -1,10 +1,10 @@
 public/*
 !public/index.html
-!public/hci-logo.png
 !public/global.css
-!public/favicon.png
+!public/*.png
 !public/icons/
 !public/*.obj
+!public/*.jpg
 
 # Created by https://www.gitignore.io/api/linux,macos,windows,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=linux,macos,windows,visualstudiocode

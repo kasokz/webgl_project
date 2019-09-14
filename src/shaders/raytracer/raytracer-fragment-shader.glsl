@@ -11,11 +11,21 @@ struct Sphere {
   float radius;
 };
 
+const Sphere nullSphere = Sphere(vec3(-10000., -10000., -10000.), vec4(0.,0.,0.,0.), 0.);
+
 struct Intersection {
   float t;
   vec3 hit;
   vec3 normal;
 };
+
+bool closerThan(Intersection i1, Intersection i2) {
+    if (i1.t < i2.t) {
+      return true;
+    } else {
+      return false;
+    }
+}
 
 const Intersection miss = Intersection(0.0, vec3(0.0), vec3(0.0));
 
@@ -51,15 +61,57 @@ varying vec3 v_position;
 
 const int reflections = 3;
 
+uniform float kA;
+uniform float kD;
+uniform float kS;
+uniform float shininess;
+
+vec4 ambient(vec4 color) {
+  return color * kA;
+}
+
+vec4 diffuse(Intersection intersection, vec4 color, vec3 lightPos) {
+  float lambertian = max(dot(normalize(lightPos - intersection.hit), intersection.normal), .0);
+  return color * kD * lambertian;
+}
+
+vec4 specular(Intersection intersection, vec4 color, vec3 lightPos) {
+  vec3 l = normalize(lightPos - intersection.hit);
+  vec3 r = reflect(-l,intersection.normal);
+  vec3 v = normalize(-intersection.hit);
+  return color * kS * pow(max(dot(r,v),0.0), shininess);
+}
+
+vec4 getPhongColor(vec4 color, Intersection intersection) {
+  vec4 result = vec4(ambient(color).xyz, 1.);
+  for(int i = 0; i < maxLights; i++) {
+    if (i < lights) {
+      result += (diffuse(intersection, color, lightPositions[i]) + specular(intersection, color, lightPositions[i]));
+    }
+  }
+  result.a = 1.;
+  return result;
+}
+
+
 void main(void) {
-  gl_FragColor = vec4(0.5,0.5,0.5,1.);
-  Sphere sphere = Sphere(sphereCenters[0], sphereColors[0], sphereRadii[0]);
-  float normalizedX = v_position.x - sphere.center.x + 2.2;
-	float normalizedY = v_position.y - sphere.center.y + 2.2;
-  if (sqrt(normalizedX * normalizedX + normalizedY * normalizedY) < 2.) {
-	  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-	} else {
-	  gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-	}
-  // gl_FragColor = vec4(sphere.center.x, sphere.center.y, sphere.center.z,1.);
+  Ray ray = Ray(vec3(0.,0.,0.), normalize(v_position));
+  Intersection minIntersection = Intersection(100000., vec3(0.,0.,0.), vec3(0.,0.,0.));
+  Sphere minSphere = nullSphere;
+  for (int i = 0; i < maxSpheres; i++) {
+    if (i < spheres) {
+      Sphere currentSphere = Sphere(sphereCenters[i], sphereColors[i], sphereRadii[i]);
+      Intersection intersection = intersect(currentSphere,  ray);
+      if (intersection != miss && closerThan(intersection, minIntersection)) {
+        minIntersection = intersection;
+        minSphere = currentSphere;
+      }
+    }
+  }
+  if(minSphere != nullSphere) {
+    gl_FragColor = getPhongColor(minSphere.color, minIntersection);
+    // gl_FragColor = vec4(1.,1.,1.,1.);
+  } else {
+    gl_FragColor = vec4(0.,0.,0.,.1);
+  }
 }

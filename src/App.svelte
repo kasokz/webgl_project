@@ -2,12 +2,14 @@
   import SceneGraph from "./components/SceneGraph.svelte";
   import PhongConfigurator from "./components/PhongConfigurator.svelte";
   import { onMount } from "svelte";
+  import { get } from "svelte/store";
   import {
     sceneGraph,
     animationNodes,
     keysPressed,
     selectedNode,
-    mouseOffsets
+    mouseOffsets,
+    mousePosition
   } from "./state/stores.js";
 
   import vertexShader from "./shaders/rasterizer/raster-vertex-shader.glsl";
@@ -144,6 +146,14 @@
       mouseOffsets.addX(event.movementX);
       mouseOffsets.addY(event.movementY);
     }
+    mousePosition.setX(event.clientX);
+    mousePosition.setY(event.clientY);
+  };
+
+  const handleStop = event => {
+    get(animationNodes)
+      .filter(n => !(n instanceof FreeFlightNode))
+      .forEach(n => n.toggleActive());
   };
 
   const handlePointerLockChange = event => {
@@ -233,6 +243,9 @@
       <h1>ICG Master Project</h1>
     </a>
     <div class="header__button-group">
+      <button type="button" class="btn btn-primary" on:click={handleStop}>
+        Toggle Animation
+      </button>
       <button
         id="freeflight_toggle"
         type="button"

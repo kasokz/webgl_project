@@ -14,6 +14,7 @@ export default class RasterMesh extends Rasterizable {
    */
   constructor(gl, url, color) {
     super();
+    this.loaded = false;
     this.gl = gl;
     this.vertices = [];
     this.indices = [];
@@ -35,6 +36,7 @@ export default class RasterMesh extends Rasterizable {
       }
       this.indices = [...Array(this.vertices.length / 3).keys()];
       this.fillBuffers();
+      this.loaded = true;
     });
   }
 }

@@ -2,6 +2,7 @@ import Visitor from '../visitor.js';
 import Shader from '../../shaders/shader.js';
 import Vector from '../../math/vector.js';
 import { SphereNode } from '../../scenegraph/nodes.js';
+import { phongConfiguration } from "../../state/stores.js";
 
 /**
  * Class representing a Visitor that uses
@@ -34,30 +35,33 @@ export default class RayVisitor extends Visitor {
     super.render(rootNode);
     const shader = this.shader;
     shader.use();
+    phongConfiguration.loadIntoShader(this.shader);
     this.sphereCenters.forEach((center, i) => {
       shader.trySet(shader.getUniformVec3.bind(shader), 'sphereCenters[' + i + ']', new Vector(center.x, center.y, center.z));
     });
     this.sphereColors.forEach((color, i) => {
-      shader.trySet(shader.getUniformVec4.bind(shader), 'sphereColors[' + i + ']', new Vector(color.x, color.y, color.z));
+      shader.trySet(shader.getUniformVec4.bind(shader), 'sphereColors[' + i + ']', new Vector(color.x, color.y, color.z, 1.0));
     });
     this.sphereRadii.forEach((radius, i) => {
       shader.trySet(shader.getUniformFloat.bind(shader), 'sphereRadii[' + i + ']', radius);
     });
     shader.trySet(shader.getUniformInt.bind(shader), "spheres", this.sphereCenters.length);
+    this.lightPositions.forEach((light, i) => {
+      shader.trySet(shader.getUniformVec3.bind(shader), 'lightPositions[' + i + ']', new Vector(light.x, light.y, light.z))
+    });
     this.draw();
   }
 
   fillBuffers() {
-    const cameraTopLeft = this.camera.eye.add(new Vector(0, 1, 0, 0)).add(new Vector(-1, 0, 0, 0).mul(this.camera.aspect));
-    const cameraBottomLeft = this.camera.eye.add(new Vector(0, -1, 0, 0)).add(new Vector(-1, 0, 0, 0).mul(this.camera.aspect));
-    const cameraTopRight = this.camera.eye.add(new Vector(0, 1, 0, 0)).add(new Vector(1, 0, 0, 0).mul(this.camera.aspect));
-    const cameraBottomRight = this.camera.eye.add(new Vector(0, -1, 0, 0)).add(new Vector(1, 0, 0, 0).mul(this.camera.aspect));
+    const cameraTopLeft = this.camera.eye.add(new Vector(0, 1, 0, 0)).add(new Vector(-1, 0, 0, 0)).mul(this.camera.aspect);
+    const cameraBottomLeft = this.camera.eye.add(new Vector(0, -1, 0, 0)).add(new Vector(-1, 0, 0, 0)).mul(this.camera.aspect);
+    const cameraTopRight = this.camera.eye.add(new Vector(0, 1, 0, 0)).add(new Vector(1, 0, 0, 0)).mul(this.camera.aspect);
+    const cameraBottomRight = this.camera.eye.add(new Vector(0, -1, 0, 0)).add(new Vector(1, 0, 0, 0)).mul(this.camera.aspect);
     const corners = [];
     corners.push(cameraTopRight.x, cameraTopRight.y, cameraTopRight.z);
     corners.push(cameraTopLeft.x, cameraTopLeft.y, cameraTopLeft.z);
     corners.push(cameraBottomRight.x, cameraBottomRight.y, cameraBottomRight.z);
     corners.push(cameraBottomLeft.x, cameraBottomLeft.y, cameraBottomLeft.z);
-    console.log(corners);
 
     this.screenBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenBuffer);
@@ -74,6 +78,7 @@ export default class RayVisitor extends Visitor {
   }
 
   draw() {
+    phongConfiguration.loadIntoShader(this.shader);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenBuffer);
     const aVertexPosition = this.shader.getAttributeLocation('a_vertexPosition');
     this.gl.enableVertexAttribArray(aVertexPosition);
@@ -94,7 +99,7 @@ export default class RayVisitor extends Visitor {
     if (!this.shouldRender || !(node instanceof SphereNode)) {
       return;
     }
-    this.sphereCenters.push(this.perspective.mul(this.lookat).mul(this.matrixStack.top()).mul(node.center));
+    this.sphereCenters.push(this.lookat.mul(this.matrixStack.top()).mul(node.center));
     this.sphereRadii.push(node.radius);
     this.sphereColors.push(node.color);
   }
