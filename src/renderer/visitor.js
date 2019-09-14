@@ -25,13 +25,8 @@ export default class Visitor {
     * @param  {Node} rootNode                 - The root node of the Scenegraph
     */
   render(rootNode) {
-    // Clear everything
-    this.gl.clearDepth(1.0);
-    // Enable depth testing
-    this.gl.enable(this.gl.DEPTH_TEST);
-    this.gl.depthFunc(this.gl.LEQUAL);
+    this.gl.clearColor(.0, .0, .0, .5);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    this.gl.clearColor(.0, .0, .0, .1)
     this.lightPositions = [];
 
     this.shouldRender = false;

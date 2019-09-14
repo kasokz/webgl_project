@@ -24,7 +24,7 @@ export default class RasterTextureBox extends TextureRasterizable {
     this.gl = gl;
     const mi = minPoint;
     const ma = maxPoint;
-    let vertices = [
+    this.vertices = [
       // front
       mi.x, mi.y, ma.z,
       ma.x, mi.y, ma.z,
@@ -71,9 +71,9 @@ export default class RasterTextureBox extends TextureRasterizable {
 
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
     this.vertexBuffer = vertexBuffer;
-    this.elements = vertices.length / 3;
+    this.elements = this.vertices.length / 3;
 
 
 

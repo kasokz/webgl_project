@@ -20,7 +20,7 @@ export default class RasterSphere extends Rasterizable {
     this.indices = [];
     this.normals = [];
 
-    let ringsize = 30;
+    let ringsize = 50;
     for (let ring = 0; ring < ringsize; ring++) {
       for (let ring2 = 0; ring2 < ringsize; ring2++) {
         let theta = (ring * Math.PI * 2) / ringsize - 1;

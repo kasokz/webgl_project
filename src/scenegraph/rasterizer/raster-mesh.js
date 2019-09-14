@@ -51,10 +51,10 @@ const parseObjectFile = contents => {
     if (cols.length > 0) {
       switch (cols[0]) {
         case "v":
-          vertices.push(new Vector(cols[1], cols[2], cols[3]));
+          vertices.push(new Vector(parseFloat(cols[1]), parseFloat(cols[2]), parseFloat(cols[3])));
           break;
         case "vn":
-          normals.push(new Vector(cols[1], cols[2], cols[3]));
+          normals.push(new Vector(parseFloat(cols[1]), parseFloat(cols[2]), parseFloat(cols[3])));
           break;
         case "f":
           const v1 = cols[1].split("/");

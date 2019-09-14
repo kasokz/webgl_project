@@ -1,35 +1,28 @@
 import Visitor from "../visitor.js";
+import RasterSphere from "../../scenegraph/rasterizer/raster-sphere.js";
+import { phongConfiguration } from "../../state/stores.js";
+import Vector from "../../math/vector.js";
 
 export class CollisionVisitor extends Visitor {
-
-}
-
-import RasterSphere from '../../scenegraph/rasterizer/raster-sphere.js';
-import RasterBox from '../../scenegraph/rasterizer/raster-box.js';
-import RasterTextureBox from '../../scenegraph/rasterizer/raster-texture-box.js';
-import Vector from '../../math/vector.js';
-import { phongConfiguration } from "../../state/stores.js";
-import RasterPyramid from '../../scenegraph/rasterizer/raster-pyramid.js';
-import TextureRasterizable from '../../scenegraph/rasterizer/texture-rasterizable.js';
-import RasterMesh from '../../scenegraph/rasterizer/raster-mesh.js';
-import Visitor from '../visitor.js';
-import Shader from '../../shaders/shader.js';
-
-/**
- * Class representing a Visitor that uses Rasterisation to render a Scenegraph
- */
-export class RasterVisitor extends Visitor {
-
   /**
-    * Creates a new RasterVisitor
+    * Creates a new CollisionVisitor
     * @param {Object} context - The 3D context to render to
-    * @param {Shader} shader - The "default" shader
-    * @param {Shader} textureShader - The texture shader
     */
-  constructor(context, shader, textureShader) {
+  constructor(context, shader) {
     super(context);
     this.shader = shader;
-    this.textureShader = textureShader;
+  }
+
+  render(rootNode) {
+    this.lightPositions = [];
+
+    this.shouldRender = false;
+    this.lightSearch = false;
+    rootNode.accept(this);
+    this.setupCamera();
+
+    this.shouldRender = true;
+    rootNode.accept(this);
   }
 
   /**
@@ -37,19 +30,14 @@ export class RasterVisitor extends Visitor {
    * @param  {Node} node - The node to visit
    */
   visit(node) {
-    if (this.shouldRender) {
-      const shader = (node.rasterObject instanceof TextureRasterizable) ? this.textureShader : this.shader;
+    if (this.shouldRender && node.boundingSphere) {
+      const shader = this.shader;
       shader.use();
       phongConfiguration.loadIntoShader(shader);
       shader.trySet(shader.getUniformMatrix.bind(shader), 'M', this.matrixStack.top());
       shader.trySet(shader.getUniformMatrix.bind(shader), 'V', this.lookat);
       shader.trySet(shader.getUniformMatrix.bind(shader), 'P', this.perspective);
-      shader.trySet(shader.getUniformMatrix.bind(shader), 'N', this.lookat.mul(this.matrixStack.top()));
-      this.lightPositions.forEach((light, i) => {
-        shader.trySet(shader.getUniformVec3.bind(shader), 'lightPositions[' + i + ']', new Vector(light.x, light.y, light.z))
-      });
-      shader.trySet(shader.getUniformInt.bind(shader), "lights", this.lightPositions.length);
-      node.rasterObject.render(shader);
+      node.boundingSphere.render(shader);
     }
   }
 }
@@ -73,7 +61,20 @@ export class CollisionSetupVisitor {
   }
 
   visit(node) {
-    node.rasterObject = new rasterNodeClasses[node.constructor.name](this.gl, ...Object.values(node).slice(1));
+    const wrap = () => {
+      if (node.rasterObject.vertices.length === 0) {
+        setTimeout(wrap, 1000);
+      } else {
+        const vertexComponents = node.rasterObject.vertices;
+        const vertices = [];
+        for (let i = 0; i < vertexComponents.length; i += 3) {
+          vertices.push(new Vector(vertexComponents[i], vertexComponents[i + 1], vertexComponents[i + 2], 1));
+        }
+        const { ritterCenter, ritterRadius } = calcRitter(vertices);
+        node.boundingSphere = new RasterSphere(this.gl, ritterCenter, ritterRadius, new Vector(1, 0, 0, 0.5));
+      }
+    };
+    wrap();
   }
 
   /**
@@ -91,4 +92,32 @@ export class CollisionSetupVisitor {
 
   visitLightNode(node) {
   }
+}
+
+const currentMax = (x) => (acc, vert) => {
+  const distance = x.sub(vert).length;
+  if (distance > acc.currMin) {
+    return { currMin: distance, currentMax: vert };
+  } else {
+    return acc;
+  }
+};
+
+const calcRitter = (vertices) => {
+  const x = vertices[0];
+  let y = vertices.reduce(currentMax(x), { currMin: 0, currentMax: {} }).currentMax;
+  let z = vertices.reduce(currentMax(y), { currMin: 0, currentMax: {} }).currentMax;
+  let radius = y.sub(z).length / 2;
+  let center = y.add(z.sub(y).mul(0.5));
+  const max = 10;
+  let i = 0;
+  while (vertices.filter(v => v.sub(center).length > (radius + 0.005)).length > 0 && i++ < max) {
+    const newY = vertices.filter(v => v.sub(center).length > (radius + 0.005))[0];
+    const newZ = center.add(newY.sub(center).normalised().mul(-radius));
+    radius = newY.sub(newZ).length / 2;
+    center = newY.add(newZ.sub(newY).mul(0.5));
+    y = newY;
+    z = newZ;
+  }
+  return { ritterCenter: center, ritterRadius: radius };
 }

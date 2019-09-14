@@ -18,6 +18,8 @@
   import textureFragmentShader from "./shaders/rasterizer/raster-texture-fragment-shader.glsl";
   import raytracerVertexShader from "./shaders/raytracer/raytracer-vertex-shader.glsl";
   import raytracerFragmentShader from "./shaders/raytracer/raytracer-fragment-shader.glsl";
+  import collisionVertexShader from "./shaders/boundingSphere/bounding-sphere-vertex-shader.glsl";
+  import collisionFragmentShader from "./shaders/boundingSphere/bounding-sphere-fragment-shader.glsl";
 
   import Vector from "./math/vector.js";
   import Matrix from "./math/matrix.js";
@@ -26,6 +28,10 @@
     RasterSetupVisitor
   } from "./renderer/rasterizer/rastervisitor.js";
   import RayVisitor from "./renderer/raytracer/rayvisitor.js";
+  import {
+    CollisionVisitor,
+    CollisionSetupVisitor
+  } from "./renderer/boundingSphere/collisionVisitor.js";
   import Shader from "./shaders/shader.js";
   import { GroupNode } from "./scenegraph/nodes.js";
   import {
@@ -41,6 +47,8 @@
   let activeRenderer;
   let rasterVisitor;
   let rasterSetupVisitor;
+  let collisionVisitor;
+  let collisionSetupVisitor;
   let rayVisitor;
 
   const toggleRenderer = () => {
@@ -52,7 +60,14 @@
   };
 
   onMount(() => {
-    const webgl = canvas.getContext("webgl");
+    const webgl = canvas.getContext("webgl", {
+      premultipliedAlpha: false
+    });
+    webgl.clearDepth(1.0);
+    webgl.enable(webgl.DEPTH_TEST);
+    webgl.depthFunc(webgl.LEQUAL);
+    webgl.enable(webgl.BLEND);
+    webgl.blendFunc(webgl.SRC_ALPHA, webgl.ONE_MINUS_SRC_ALPHA);
     createDemoSceneGraph(canvas);
 
     rayVisitor = new RayVisitor(
@@ -65,9 +80,15 @@
       new Shader(webgl, textureVertexShader, textureFragmentShader)
     );
     rasterSetupVisitor = new RasterSetupVisitor(webgl);
+    collisionVisitor = new CollisionVisitor(
+      webgl,
+      new Shader(webgl, collisionVertexShader, collisionFragmentShader)
+    );
+    collisionSetupVisitor = new CollisionSetupVisitor(webgl);
 
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
+    collisionSetupVisitor.setup($sceneGraph);
 
     const simulate = deltaT => {
       for (let animationNode of $animationNodes) {
@@ -79,6 +100,7 @@
     const animateFunc = timestamp => {
       simulate(timestamp - lastTimestamp);
       activeRenderer.render($sceneGraph);
+      collisionVisitor.render($sceneGraph);
       lastTimestamp = timestamp;
       window.requestAnimationFrame(animateFunc);
     };
@@ -86,7 +108,8 @@
     Promise.all([
       rasterVisitor.shader.load(),
       rasterVisitor.textureShader.load(),
-      rayVisitor.shader.load()
+      rayVisitor.shader.load(),
+      collisionVisitor.shader.load()
     ]).then(_ => window.requestAnimationFrame(animateFunc));
   });
 
