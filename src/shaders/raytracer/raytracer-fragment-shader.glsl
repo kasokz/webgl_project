@@ -1,35 +1,62 @@
 precision mediump float;
 
-struct Ray {
-  vec3 origin;
-  vec3 direction;
+varying vec3 rayDirection;
+varying vec3 rayOrigin;
+
+// point light
+uniform vec3 light0;
+
+struct Ray
+{
+  vec3    origin;
+  vec3    direction;
 };
 
-struct Sphere {
-  vec3 center;
-  vec4 color;
-  float radius;
+struct Material
+{
+  vec3  diffuse;
+  float   reflectance;
 };
 
-const Sphere nullSphere = Sphere(vec3(-10000., -10000., -10000.), vec4(0.,0.,0.,0.), 0.);
 
-struct Intersection {
-  float t;
-  vec3 hit;
-  vec3 normal;
+struct Hit
+{
+  vec3    position;
+  vec3    normal;
+  float   t;
+
+  Material  material;
 };
 
-bool closerThan(Intersection i1, Intersection i2) {
-    if (i1.t < i2.t) {
-      return true;
-    } else {
-      return false;
-    }
+struct Sphere
+{
+  // coords + radius
+  vec3    center;
+  float   radius;
+  Material  material;
+};
+
+
+// a small epsilon to work around the biggest problems with floats
+const float EPS = 0.0001;
+// 'clear value' for the ray
+const float START_T = 100000.0;
+// maximum recursion depth for rays
+const int MAX_DEPTH = 3;
+
+
+Ray initRay()
+{
+  Ray r;
+  r.origin = rayOrigin;
+  r.direction = normalize(rayDirection);
+  return r;
 }
 
-const Intersection miss = Intersection(0.0, vec3(0.0), vec3(0.0));
-
-Intersection intersect(Sphere sphere, Ray ray) {
+// intersects the ray with a sphere and returns the line parameter t for
+// a hit or -1 if not hit occured
+float intersectRaySphere(in Ray ray, in Sphere sphere)
+{
   vec3 rayOrigin = ray.origin;
   vec3 rayDir = ray.direction;
   float t = dot((sphere.center - rayOrigin), rayDir);
@@ -40,80 +67,110 @@ Intersection intersect(Sphere sphere, Ray ray) {
     float t1 = t - x;
     float t2 = t + x;
     float firstHitDistance = min(t1, t2);
-    return Intersection(firstHitDistance,
-      rayOrigin + (rayDir * firstHitDistance),
-      normalize((rayOrigin + (rayDir * firstHitDistance)) - sphere.center));
+    return firstHitDistance;
   }
-  return miss;
+  return -1.;
 }
 
+// the scene consists of 7 spheres, a ground plane an a light
+Sphere sphereObjects[7];
 const int maxSpheres = 64;
 uniform vec3 sphereCenters[64];
 uniform vec4 sphereColors[64];
 uniform float sphereRadii[64];
 uniform int spheres;
 
-uniform vec3 lightPositions[8];
-const int maxLights = 8;
-uniform int lights;
-
-const int reflections = 3;
-
-varying vec3 rayOrigin;
-varying vec3 rayDirection;
-
 uniform float kA;
 uniform float kD;
 uniform float kS;
 uniform float shininess;
 
-vec4 ambient(vec4 color) {
-  return color * kA;
-}
+// initializes the scene
+void initScene()
+{
+  // // set the center, radius and material of the first sphere
+  // sphereObjects[0].center = vec3(0.0, 0.0, 0.0);
+  // sphereObjects[0].radius = 2.0;
+  // sphereObjects[0].material.diffuse = vec3(0.7, 0.0, 0.0);
+  // sphereObjects[0].material.reflectance = 0.1;
 
-vec4 diffuse(Intersection intersection, vec4 color, vec3 lightPos) {
-  float lambertian = max(dot(normalize(lightPos - intersection.hit), intersection.normal), .0);
-  return color * kD * lambertian;
-}
-
-vec4 specular(Intersection intersection, vec4 color, vec3 lightPos) {
-  vec3 l = normalize(lightPos - intersection.hit);
-  vec3 r = reflect(-l,intersection.normal);
-  vec3 v = normalize(-intersection.hit);
-  return color * kS * pow(max(dot(r,v),0.0), shininess);
-}
-
-vec4 getPhongColor(vec4 color, Intersection intersection) {
-  vec4 result = vec4(ambient(color).xyz, 1.);
-  for(int i = 0; i < maxLights; i++) {
-    if (i < lights) {
-      result += (diffuse(intersection, color, lightPositions[i]) + specular(intersection, color, lightPositions[i]));
-    }
-  }
-  result.a = 1.;
-  return result;
-}
-
-
-void main(void) {
-  Ray ray = Ray(rayOrigin, normalize(rayDirection));
-  Intersection minIntersection = Intersection(100000., vec3(0.,0.,0.), vec3(0.,0.,0.));
-  Sphere minSphere = nullSphere;
   for (int i = 0; i < maxSpheres; i++) {
     if (i < spheres) {
-      Sphere currentSphere = Sphere(sphereCenters[i], sphereColors[i], sphereRadii[i]);
-      Intersection intersection = intersect(currentSphere,  ray);
-      if (intersection != miss && closerThan(intersection, minIntersection)) {
-        minIntersection = intersection;
-        minSphere = currentSphere;
-      }
+      sphereObjects[i].center = sphereCenters[i];
+      sphereObjects[i].radius = sphereRadii[i];
+      sphereObjects[i].material.diffuse = vec3(0.7, 0.0, 0.0);
+      sphereObjects[i].material.reflectance = 0.1;
     }
   }
-  if(minSphere != nullSphere) {
-    gl_FragColor = getPhongColor(minSphere.color, minIntersection);
-    // gl_FragColor = vec4(1.,1.,1.,1.);
-  } else {
-    gl_FragColor = vec4(0.8,0.8,0.8,.5);
+}
+
+
+// traces the scene and reports the closest hit
+bool traceScene(in Ray ray, inout Hit hit)
+{
+  hit.t = START_T;
+
+  float t = START_T;
+  if (t >= 0.0 && t <= hit.t)
+  {
+    hit.t = t;
+    hit.position = ray.origin + ray.direction * t;
+    hit.normal = vec3(0,1,0);
+    hit.material.diffuse  = vec3(0.6);
+    hit.material.reflectance = 0.0;//05;
   }
-  gl_FragColor = vec4(normalize(rayDirection), 1.);
+
+  // then check each of the seven sphers
+  for (int i = 0; i < 7; ++i)
+  {
+    t = intersectRaySphere(ray, sphereObjects[i]);
+
+    // only keep this hit if it's closer (smaller t)
+    if (t >= 0.0 && t <= hit.t)
+    {
+      vec3 pos = ray.origin + ray.direction * t;;
+      vec3 N = normalize(pos - sphereObjects[i].center);
+
+      hit.t = t;
+      hit.normal = N;
+      hit.material = sphereObjects[i].material;
+      hit.position = pos;
+    }
+  }
+
+  return hit.t < START_T;
+}
+
+
+// shades a given hit and returns the final color
+vec3 shadeHit(in Hit hit)
+{
+  vec3 color = hit.material.diffuse;
+  // ray to the light
+  vec3 L = normalize(light0 - hit.position);
+  // test for shadows
+  Ray r;
+  r.origin = hit.position + hit.normal * EPS;
+  r.direction = L;
+  // Phong shading with 0.2 min. ambient contribution.
+  float s = max(0.2, dot(L,hit.normal));
+  color *= s;
+  return color;
+}
+
+void main()
+{
+  // create the primary ray
+  Ray ray = initRay();
+  initScene();
+  // the 'clear color' is the ray direction (useful for debugging)
+  vec3 color = ray.direction;
+  Hit hit;
+  // trace the scene and see if we hit something
+  if (traceScene(ray, hit))
+  {
+    // if we do, shade the hit
+    color = shadeHit(hit);
+  }
+  gl_FragColor = vec4(color, 1.0);
 }

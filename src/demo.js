@@ -84,13 +84,13 @@ const createDemoSceneGraph = (canvas) => {
 
   const sphereConstellation = new GroupNode("sphereRoot", Matrix.translation(new Vector(0, 8, 0)));
   const sphere1 = new GroupNode("sphere1Group", Matrix.translation(new Vector(-10, 0, -3)));
-  sphere1.add(new SphereNode("sphere1", new Vector(0, 0, 0, 0), 1, new Vector(0.7, 0.7, 0.7, 1), new Vector(0, 0, 0, 0.5)));
+  sphere1.add(new SphereNode("sphere1", new Vector(0, 0, 0, 1), 1, new Vector(0.7, 0.7, 0.7, 1), new Vector(0, 0, 0, 0.5)));
   sphereConstellation.add(sphere1);
   const sphere2 = new GroupNode("sphere2Group", Matrix.translation(new Vector(10, -2, -5)));
-  sphere2.add(new SphereNode("sphere2", new Vector(0, 0, 0, 0), 1.5, new Vector(0.3, 0, 0, 1)));
+  sphere2.add(new SphereNode("sphere2", new Vector(0, 0, 0, 1), 1.5, new Vector(0.3, 0, 0, 1)));
   sphereConstellation.add(sphere2);
   const sphere3 = new GroupNode("sphere3Group", Matrix.translation(new Vector(-4, -4, 4)));
-  sphere3.add(new SphereNode("sphere3", new Vector(0, 0, 0, 0), 1.5, new Vector(0, 0, 0.4, 1), new Vector(1, 1, 1, 1)));
+  sphere3.add(new SphereNode("sphere3", new Vector(0, 0, 0, 1), 1.5, new Vector(0, 0, 0.4, 1), new Vector(1, 1, 1, 1)));
   sphereConstellation.add(sphere3);
 
   desktopBase.add(sphereConstellation);
@@ -102,7 +102,7 @@ const createDemoSceneGraph = (canvas) => {
       "camera",
       new Vector(0, 0, 1, 1),
       new Vector(0, 0, -1, 1),
-      new Vector(0, 1, 0, 1),
+      new Vector(0, 1, 0, 0),
       75,
       canvas.width / canvas.height,
       0.1,
