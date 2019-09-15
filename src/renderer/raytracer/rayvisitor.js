@@ -35,6 +35,7 @@ export default class RayVisitor extends Visitor {
     super.render(rootNode);
     const shader = this.shader;
     shader.use();
+    shader.trySet(shader.getUniformMatrix.bind(shader), "iMVP", (this.perspective.mul(this.lookat).mul(this.cameraModelMat)).invert());
     phongConfiguration.loadIntoShader(this.shader);
     this.sphereCenters.forEach((center, i) => {
       shader.trySet(shader.getUniformVec3.bind(shader), 'sphereCenters[' + i + ']', new Vector(center.x, center.y, center.z));
@@ -103,4 +104,5 @@ export default class RayVisitor extends Visitor {
     this.sphereRadii.push(node.radius);
     this.sphereColors.push(node.color);
   }
+
 }

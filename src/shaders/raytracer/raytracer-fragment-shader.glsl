@@ -57,9 +57,10 @@ uniform vec3 lightPositions[8];
 const int maxLights = 8;
 uniform int lights;
 
-varying vec3 v_position;
-
 const int reflections = 3;
+
+varying vec3 rayOrigin;
+varying vec3 rayDirection;
 
 uniform float kA;
 uniform float kD;
@@ -95,7 +96,7 @@ vec4 getPhongColor(vec4 color, Intersection intersection) {
 
 
 void main(void) {
-  Ray ray = Ray(vec3(0.,0.,0.), normalize(v_position));
+  Ray ray = Ray(rayOrigin, normalize(rayDirection));
   Intersection minIntersection = Intersection(100000., vec3(0.,0.,0.), vec3(0.,0.,0.));
   Sphere minSphere = nullSphere;
   for (int i = 0; i < maxSpheres; i++) {
@@ -112,6 +113,7 @@ void main(void) {
     gl_FragColor = getPhongColor(minSphere.color, minIntersection);
     // gl_FragColor = vec4(1.,1.,1.,1.);
   } else {
-    gl_FragColor = vec4(0.,0.,0.,.1);
+    gl_FragColor = vec4(0.8,0.8,0.8,.5);
   }
+  gl_FragColor = vec4(normalize(rayDirection), 1.);
 }

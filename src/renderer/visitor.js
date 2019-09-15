@@ -67,6 +67,7 @@ export default class Visitor {
   visitCameraNode(node) {
     if (!this.shouldRender && !this.lightSearch) {
       this.camera = node;
+      this.cameraModelMat = this.matrixStack.top();
       this.cameraWorld = this.matrixStack.top().mul(node.eye);
       this.viewMat = this.inverseMatrixStack.top();
     }
