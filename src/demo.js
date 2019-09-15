@@ -92,10 +92,17 @@ const createDemoSceneGraph = (canvas) => {
   const sphere3 = new GroupNode("sphere3Group", Matrix.translation(new Vector(-4, -4, 4)));
   sphere3.add(new SphereNode("sphere3", new Vector(0, 0, 0, 1), 1.5, new Vector(0, 0, 0.4, 1), new Vector(1, 1, 1, 1)));
   sphereConstellation.add(sphere3);
+  const cow = new GroupNode("flyingCow", Matrix.translation(new Vector(0, 1, -5)).mul(Matrix.scaling(new Vector(0.5, 0.5, 0.5))));
+  cow.add(new MeshNode("cow", "cow.obj", new Vector(0, 0.4, 0.4, 1)));
+  sphereConstellation.add(cow);
+  const bunny = new GroupNode("flyingBunny", Matrix.translation(new Vector(0, 2, 5)).mul(Matrix.scaling(new Vector(5, 5, 5))));
+  bunny.add(new MeshNode("bunny", "bunnyHR.obj", new Vector(0.6, 0, 0.4, 1)));
+  sphereConstellation.add(bunny);
+
 
   desktopBase.add(sphereConstellation);
 
-  const cameraHolder = new GroupNode("camerHolder", Matrix.translation(new Vector(0, 2, 0, 1)));
+  const cameraHolder = new GroupNode("camerHolder", Matrix.translation(new Vector(0, 2, 10, 1)));
   const cameraNode = new GroupNode("cameraNode", Matrix.identity());
   cameraNode.add(
     new CameraNode(
@@ -124,7 +131,11 @@ const createDemoSceneGraph = (canvas) => {
   animationNodes.add(new RotationNode(desktopBase.id, new Vector(0, 1, 0), 45));
   animationNodes.add(new BouncingNode(clockHandTip.id, new Vector(0, 1, 0), 0.25, 2));
   animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1), 90));
-  animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 1), 90));
+  animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 0), 90));
+  animationNodes.add(new RotationNode(bunny.id, new Vector(0, 1, 0), 90));
+  animationNodes.add(new RotationNode(bunny.id, new Vector(0, 0, 1), 90));
+  animationNodes.add(new RotationNode(cow.id, new Vector(0, 1, 0), 90));
+  animationNodes.add(new RotationNode(cow.id, new Vector(0, 0, 1), 90));
   animationNodes.add(new FreeFlightNode(cameraNode.id, 0.5));
 }
 

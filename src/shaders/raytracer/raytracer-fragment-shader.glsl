@@ -88,18 +88,12 @@ uniform float shininess;
 // initializes the scene
 void initScene()
 {
-  // // set the center, radius and material of the first sphere
-  // sphereObjects[0].center = vec3(0.0, 0.0, 0.0);
-  // sphereObjects[0].radius = 2.0;
-  // sphereObjects[0].material.diffuse = vec3(0.7, 0.0, 0.0);
-  // sphereObjects[0].material.reflectance = 0.1;
-
   for (int i = 0; i < maxSpheres; i++) {
     if (i < spheres) {
       sphereObjects[i].center = sphereCenters[i];
       sphereObjects[i].radius = sphereRadii[i];
-      sphereObjects[i].material.diffuse = vec3(0.7, 0.0, 0.0);
-      sphereObjects[i].material.reflectance = 0.1;
+      sphereObjects[i].material.diffuse = vec3(0.7,0.,0.);
+      sphereObjects[i].material.reflectance = kS;
     }
   }
 }

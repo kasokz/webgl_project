@@ -67,12 +67,17 @@ export class CollisionVisitor extends Visitor {
     node.rasterBoundingSphere.render(shader);
   }
 
+  // rayDirection = (farPlane.xyz - nearPlane.xyz);
+  // rayOrigin = nearPlane.xyz;
+
   getIntersection(node) {
     const toWorld = (this.perspective.mul(this.lookat)).invert();
-    let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
-    from = from.div(from.w);
+    let near = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
+    near = near.div(near.w);
+    let far = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, 1, 1));
+    far = far.div(far.w);
     const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
-      node.boundingSphere.radius).intersect({ origin: this.cameraWorld, direction: from.sub(this.cameraWorld).normalised() });
+      node.boundingSphere.radius).intersect({ origin: near, direction: (far.sub(near)).normalised() });
     if (intersection && intersection.closerThan(this.minIntersection)) {
       this.minIntersection = intersection;
       this.intersectedNode = node;
