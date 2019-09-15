@@ -1,5 +1,5 @@
-import Intersection from '../../renderer/raytracer/intersection.js';
-import Vector from '../../math/vector.js';
+import Intersection from '../renderer/raytracer/intersection.js';
+import Vector from './vector.js';
 
 /**
  * A class representing a sphere
@@ -9,12 +9,10 @@ export default class Sphere {
    * Creates a new Sphere with center and radius
    * @param  {Vector} center - The center of the Sphere
    * @param  {number} radius - The radius of the Sphere
-   * @param  {Vector} color  - The colour of the Sphere
    */
-  constructor(center, radius, color) {
+  constructor(center, radius) {
     this.center = center;
     this.radius = radius;
-    this.color = color;
   }
 
   /**

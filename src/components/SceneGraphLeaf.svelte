@@ -1,10 +1,14 @@
 <script>
-  import { selectedNode } from "../state/stores.js";
+  import { selectedNode, hoveredNode } from "../state/stores.js";
 
   export let node;
 
   const click = () => {
     selectedNode.set(node);
+  };
+
+  const mouseEnter = () => {
+    hoveredNode.set(node);
   };
 </script>
 
@@ -28,7 +32,10 @@
   }
 </style>
 
-<span class:active={$selectedNode === node} on:click={click}>
+<span
+  class:active={$selectedNode === node}
+  on:click={click}
+  on:mouseenter={mouseEnter}>
   <strong>{node.id}</strong>
   {` (${node.constructor.name})`}
 </span>

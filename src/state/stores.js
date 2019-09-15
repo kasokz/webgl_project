@@ -86,5 +86,6 @@ export const phongConfiguration = createPhongConfiguration();
 export const camera = writable({});
 export const keysPressed = createKeysPressed();
 export const selectedNode = writable({});
+export const hoveredNode = writable({});
 export const sceneGraph = createSceneGraph();
 export const animationNodes = createAnimationNodes();

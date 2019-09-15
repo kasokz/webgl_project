@@ -134,6 +134,7 @@
         $selectedNode = {};
         $sceneGraph = GroupNode.fromJSON(sceneGraphObj);
         rasterSetupVisitor.setup($sceneGraph);
+        collisionSetupVisitor.setup($sceneGraph);
         $animationNodes = animationNodesArr.map(anim =>
           animationNodeClasses[anim.type].fromJSON(anim)
         );
@@ -172,15 +173,25 @@
     if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
       const x_in_canvas = x - rect.left;
       const y_in_canvas = rect.bottom - y;
-      mousePosition.setX(x_in_canvas);
-      mousePosition.setY(y_in_canvas);
+      const canvasHeight = rect.bottom - rect.top;
+      const canvasWidth = rect.right - rect.left;
+      mousePosition.setX((2 * x_in_canvas) / canvasWidth - 1);
+      mousePosition.setY((2 * y_in_canvas) / canvasHeight - 1);
     }
+  };
+
+  const toggleIntersectSearch = () => {
+    collisionVisitor.toggleIntersect();
   };
 
   const handleStop = event => {
     get(animationNodes)
       .filter(n => !(n instanceof FreeFlightNode))
       .forEach(n => n.toggleActive());
+  };
+
+  const handleBoundToggle = () => {
+    collisionVisitor.toggleRender();
   };
 
   const handlePointerLockChange = event => {
@@ -196,6 +207,7 @@
   document.addEventListener("pointerlockchange", handlePointerLockChange);
 
   const startFreeFlight = event => {
+    event.preventDefault();
     canvas.requestPointerLock();
     $animationNodes
       .filter(node => node instanceof FreeFlightNode)
@@ -270,15 +282,14 @@
       <h1>ICG Master Project</h1>
     </a>
     <div class="header__button-group">
-      <button type="button" class="btn btn-primary" on:click={handleStop}>
-        Toggle Animation
-      </button>
       <button
-        id="freeflight_toggle"
         type="button"
         class="btn btn-primary"
-        on:click={startFreeFlight}>
-        Start free flight
+        on:click={handleBoundToggle}>
+        Toggle Bounding Spheres
+      </button>
+      <button type="button" class="btn btn-primary" on:click={handleStop}>
+        Toggle Animation
       </button>
       <button
         id="renderer_toggle"
@@ -326,5 +337,8 @@
     bind:this={canvas}
     width="1920"
     height="1080"
-    on:mousemove={handleMouseMove} />
+    on:contextmenu={startFreeFlight}
+    on:mousemove={handleMouseMove}
+    on:mouseenter={toggleIntersectSearch}
+    on:mouseleave={toggleIntersectSearch} />
 </div>

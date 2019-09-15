@@ -1,5 +1,6 @@
 import Matrix from '../math/matrix.js';
 import Vector from "../math/vector.js"
+import Intersection from "../renderer/raytracer/intersection.js";
 
 /**
  * Class representing a Node in a Scenegraph
@@ -118,7 +119,6 @@ export class SphereNode extends Node {
       obj.radius,
       new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w));
   }
-
 }
 
 /**

@@ -99,7 +99,7 @@ export default class RayVisitor extends Visitor {
     if (!this.shouldRender || !(node instanceof SphereNode)) {
       return;
     }
-    this.sphereCenters.push(this.lookat.mul(this.matrixStack.top()).mul(node.center));
+    this.sphereCenters.push(this.lookat.mul(this.matrixStack.top().mul(node.center)));
     this.sphereRadii.push(node.radius);
     this.sphereColors.push(node.color);
   }

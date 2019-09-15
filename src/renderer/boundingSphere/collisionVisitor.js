@@ -1,7 +1,12 @@
 import Visitor from "../visitor.js";
+import Matrix from "../../math/matrix.js";
 import RasterSphere from "../../scenegraph/rasterizer/raster-sphere.js";
-import { phongConfiguration } from "../../state/stores.js";
+import { phongConfiguration, mousePosition, hoveredNode } from "../../state/stores.js";
+import { get } from "svelte/store";
 import Vector from "../../math/vector.js";
+import { SphereNode } from "../../scenegraph/nodes.js";
+import Sphere from "../../math/sphere.js";
+import Intersection from "../raytracer/intersection.js";
 
 export class CollisionVisitor extends Visitor {
   /**
@@ -11,18 +16,63 @@ export class CollisionVisitor extends Visitor {
   constructor(context, shader) {
     super(context);
     this.shader = shader;
+    this.renderActive = false;
+    this.intersectActive = false;
+  }
+
+  toggleRender() {
+    this.renderActive = !this.renderActive;
+  }
+
+  toggleIntersect() {
+    this.intersectActive = !this.intersectActive;
   }
 
   render(rootNode) {
-    this.lightPositions = [];
-
-    this.shouldRender = false;
+    this.minIntersection = new Intersection();
+    this.intersectedNode = {};
     this.lightSearch = false;
+    this.shouldRender = false;
+    this.intersectionSearch = false;
     rootNode.accept(this);
     this.setupCamera();
-
+    this.intersectionSearch = true;
+    rootNode.accept(this);
+    if (this.intersectActive) {
+      hoveredNode.set(this.intersectedNode);
+    }
+    this.intersectionSearch = false;
     this.shouldRender = true;
     rootNode.accept(this);
+  }
+
+  draw(node) {
+    const shader = this.shader;
+    shader.use();
+    phongConfiguration.loadIntoShader(shader);
+    shader.trySet(shader.getUniformMatrix.bind(shader), 'M', this.matrixStack.top());
+    shader.trySet(shader.getUniformMatrix.bind(shader), 'V', this.lookat);
+    shader.trySet(shader.getUniformMatrix.bind(shader), 'P', this.perspective);
+    if (node == get(hoveredNode)) {
+      shader.trySet(shader.getUniformVec4.bind(shader), 'color', new Vector(1, 1, 0, 0.5));
+    } else {
+      shader.trySet(shader.getUniformVec4.bind(shader), 'color', new Vector(1, 0, 0, 0.5));
+    }
+    node.rasterBoundingSphere.render(shader);
+  }
+
+  getIntersection(node) {
+    const toWorld = (this.perspective.mul(this.lookat)).invert();
+    let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
+    from = from.div(from.w);
+    let to = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, 1, 1));
+    to = to.div(to.w);
+    const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
+      node.boundingSphere.radius).intersect({ origin: from, direction: from.sub(to).normalised() });
+    if (intersection && intersection.closerThan(this.minIntersection)) {
+      this.minIntersection = intersection;
+      this.intersectedNode = node;
+    }
   }
 
   /**
@@ -30,14 +80,21 @@ export class CollisionVisitor extends Visitor {
    * @param  {Node} node - The node to visit
    */
   visit(node) {
-    if (this.shouldRender && node.boundingSphere) {
-      const shader = this.shader;
-      shader.use();
-      phongConfiguration.loadIntoShader(shader);
-      shader.trySet(shader.getUniformMatrix.bind(shader), 'M', this.matrixStack.top());
-      shader.trySet(shader.getUniformMatrix.bind(shader), 'V', this.lookat);
-      shader.trySet(shader.getUniformMatrix.bind(shader), 'P', this.perspective);
-      node.boundingSphere.render(shader);
+    if (node.rasterBoundingSphere) {
+      if (this.renderActive && this.shouldRender) {
+        this.draw(node);
+      }
+      if (this.intersectActive && this.intersectionSearch) {
+        this.getIntersection(node);
+      }
+    }
+  }
+
+  visitCameraNode(node) {
+    if (!this.shouldRender && !this.intersectionSearch) {
+      this.camera = node;
+      this.cameraWorld = this.matrixStack.top().mul(node.center);
+      this.lookat = this.inverseMatrixStack.top();
     }
   }
 }
@@ -71,7 +128,8 @@ export class CollisionSetupVisitor {
           vertices.push(new Vector(vertexComponents[i], vertexComponents[i + 1], vertexComponents[i + 2], 1));
         }
         const { ritterCenter, ritterRadius } = calcRitter(vertices);
-        node.boundingSphere = new RasterSphere(this.gl, ritterCenter, ritterRadius, new Vector(1, 0, 0, 0.5));
+        node.boundingSphere = new SphereNode("", ritterCenter, ritterRadius, new Vector(0, 0, 0, 0));
+        node.rasterBoundingSphere = new RasterSphere(this.gl, ritterCenter, ritterRadius, new Vector(1, 0, 0, 0.5));
       }
     };
     wrap();

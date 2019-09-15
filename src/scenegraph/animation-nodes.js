@@ -218,10 +218,10 @@ export class DriverNode extends AnimationNode {
     if (this.active) {
       if (get(selectedNode) === this.groupNode) {
         if (get(keysPressed).get("ArrowRight")) {
-          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-deltaT / 1000)).mul(this.translationMatrix);
+          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(deltaT / 1000)).mul(this.translationMatrix);
         }
         if (get(keysPressed).get("ArrowLeft")) {
-          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(deltaT / 1000)).mul(this.translationMatrix);
+          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-deltaT / 1000)).mul(this.translationMatrix);
         }
         if (get(keysPressed).get("ArrowUp")) {
           this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(deltaT / 1000)).mul(this.translationMatrix);
@@ -279,16 +279,16 @@ export class FreeFlightNode extends AnimationNode {
   simulate(deltaT) {
     if (this.active) {
       if (get(keysPressed).get("a")) {
-        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
-      }
-      if (get(keysPressed).get("d")) {
         this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-10 * deltaT / 1000)).mul(this.translationMatrix);
       }
+      if (get(keysPressed).get("d")) {
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
+      }
       if (get(keysPressed).get("w")) {
-        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(-10 * deltaT / 1000)).mul(this.translationMatrix);
       }
       if (get(keysPressed).get("s")) {
-        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(-10 * deltaT / 1000)).mul(this.translationMatrix);
+        this.translationMatrix = Matrix.translation(this.groupNode.matrix.getForwardVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
       }
       if (get(keysPressed).get("q")) {
         this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(10 * deltaT / 1000)).mul(this.translationMatrix);
@@ -296,7 +296,7 @@ export class FreeFlightNode extends AnimationNode {
       if (get(keysPressed).get("e")) {
         this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(-10 * deltaT / 1000)).mul(this.translationMatrix);
       }
-      this.currentY += get(mouseOffsets).y * deltaT / 100 * this.mouseSensitivity;
+      this.currentY += -get(mouseOffsets).y * deltaT / 100 * this.mouseSensitivity;
       this.currentX += -get(mouseOffsets).x * deltaT / 100 * this.mouseSensitivity;
       this.groupNode.matrix = this.translationMatrix.mul(
         Matrix.rotation(new Vector(0, 1, 0), this.currentX).mul(Matrix.rotation(new Vector(1, 0, 0), this.currentY))).mul(this.origin);
