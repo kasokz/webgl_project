@@ -120,21 +120,23 @@ export class CollisionSetupVisitor {
   }
 
   visit(node) {
-    const wrap = () => {
-      if (node.rasterObject.vertices.length === 0) {
-        setTimeout(wrap, 1000);
-      } else {
-        const vertexComponents = node.rasterObject.vertices;
-        const vertices = [];
-        for (let i = 0; i < vertexComponents.length; i += 3) {
-          vertices.push(new Vector(vertexComponents[i], vertexComponents[i + 1], vertexComponents[i + 2], 1));
+    if (!node.id.includes("noColl")) {
+      const wrap = () => {
+        if (node.rasterObject.vertices.length === 0) {
+          setTimeout(wrap, 1000);
+        } else {
+          const vertexComponents = node.rasterObject.vertices;
+          const vertices = [];
+          for (let i = 0; i < vertexComponents.length; i += 3) {
+            vertices.push(new Vector(vertexComponents[i], vertexComponents[i + 1], vertexComponents[i + 2], 1));
+          }
+          const { ritterCenter, ritterRadius } = calcRitter(vertices);
+          node.boundingSphere = new SphereNode("", ritterCenter, ritterRadius, new Vector(0, 0, 0, 0));
+          node.rasterBoundingSphere = new RasterSphere(this.gl, ritterCenter, ritterRadius, new Vector(1, 0, 0, 0.5));
         }
-        const { ritterCenter, ritterRadius } = calcRitter(vertices);
-        node.boundingSphere = new SphereNode("", ritterCenter, ritterRadius, new Vector(0, 0, 0, 0));
-        node.rasterBoundingSphere = new RasterSphere(this.gl, ritterCenter, ritterRadius, new Vector(1, 0, 0, 0.5));
-      }
-    };
-    wrap();
+      };
+      wrap();
+    }
   }
 
   /**

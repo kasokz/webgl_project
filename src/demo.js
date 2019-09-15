@@ -12,6 +12,7 @@ import {
 } from "./scenegraph/animation-nodes.js";
 import Vector from "./math/vector.js";
 import Matrix from "./math/matrix.js";
+import Sphere from './math/sphere.js';
 
 const createDemoSceneGraph = (canvas) => {
   sceneGraph.set(
@@ -58,7 +59,7 @@ const createDemoSceneGraph = (canvas) => {
   clockHandTip.add(
     new MeshNode(
       "clockMonkey",
-      "http://localhost:5000/monkey.obj",
+      "monkey.obj",
       new Vector(0.3, 0.2, 0.0, 1)
     )
   );
@@ -70,20 +71,29 @@ const createDemoSceneGraph = (canvas) => {
   const teapotGroup = new GroupNode("teapotGroup", Matrix.translation(
     new Vector(0, 2.05, 0, 1)).mul(Matrix.scaling(
       new Vector(0.4, 0.4, 0.4))));
-  teapotGroup.add(new MeshNode("teapot", "http://localhost:5000/teapot.obj", new Vector(1, 0.8, 0, 1)));
+  teapotGroup.add(new MeshNode("teapot", "teapot.obj", new Vector(1, 0.8, 0, 1)));
   desktopBase.add(teapotGroup);
 
   const carpetGroup = new GroupNode("carpetGroup", Matrix.translation(new Vector(0, -2, 0)));
-  carpetGroup.add(new TextureBoxNode("carpet", new Vector(-20, 0, -20, 1), new Vector(20, 0.01, 20), "carpet.jpg"));
+  carpetGroup.add(new TextureBoxNode("carpet-noColl", new Vector(-20, 0, -20, 1), new Vector(20, 0.01, 20), "carpet.jpg"));
   baseTranslation.add(carpetGroup);
 
-  const lucyGroup = new GroupNode("lucyGroup", Matrix.scaling(
-    new Vector(5, 5, 5)));
-  lucyGroup.add(new MeshNode("lucy", "http://localhost:5000/lucyBig.obj", new Vector(0, 0.8, 0.2, 1)));
-
   const house = new GroupNode("houseGroup", Matrix.translation(new Vector(0, -2.1, 0)));
-  house.add(new TextureBoxNode("houseNode", new Vector(-20, 0, -20, 1), new Vector(20, 20, 20), "shack.jpg"));
+  house.add(new TextureBoxNode("houseNode-noColl", new Vector(-20, 0, -20, 1), new Vector(20, 20, 20), "shack.jpg"));
   baseTranslation.add(house);
+
+  const sphereConstellation = new GroupNode("sphereRoot", Matrix.translation(new Vector(0, 8, 0)));
+  const sphere1 = new GroupNode("sphere1Group", Matrix.translation(new Vector(-10, 0, -3)));
+  sphere1.add(new SphereNode("sphere1", new Vector(0, 0, 0, 0), 1, new Vector(0.7, 0.7, 0.7, 1), new Vector(0, 0, 0, 0.5)));
+  sphereConstellation.add(sphere1);
+  const sphere2 = new GroupNode("sphere2Group", Matrix.translation(new Vector(10, -2, -5)));
+  sphere2.add(new SphereNode("sphere2", new Vector(0, 0, 0, 0), 1.5, new Vector(0.3, 0, 0, 1)));
+  sphereConstellation.add(sphere2);
+  const sphere3 = new GroupNode("sphere3Group", Matrix.translation(new Vector(-4, -4, 4)));
+  sphere3.add(new SphereNode("sphere3", new Vector(0, 0, 0, 0), 1.5, new Vector(0, 0, 0.4, 1), new Vector(1, 1, 1, 1)));
+  sphereConstellation.add(sphere3);
+
+  desktopBase.add(sphereConstellation);
 
   const cameraHolder = new GroupNode("camerHolder", Matrix.translation(new Vector(0, 2, 0, 1)));
   const cameraNode = new GroupNode("cameraNode", Matrix.identity());
@@ -110,6 +120,7 @@ const createDemoSceneGraph = (canvas) => {
   sceneGraph.add(lightNode);
   sceneGraph.add(sunNode);
 
+  animationNodes.add(new DriverNode(sphereConstellation.id, new Vector(1, 0, 0), new Vector(0, 0, -1), 5));
   animationNodes.add(new RotationNode(desktopBase.id, new Vector(0, 1, 0), 45));
   animationNodes.add(new BouncingNode(clockHandTip.id, new Vector(0, 1, 0), 0.25, 2));
   animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1), 90));

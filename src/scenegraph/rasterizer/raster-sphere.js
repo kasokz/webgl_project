@@ -12,7 +12,7 @@ export default class RasterSphere extends Rasterizable {
    * @param {number} radius   - The radius of the sphere
    * @param {Vector} color    - The color of the sphere
    */
-  constructor(gl, center, radius, color) {
+  constructor(gl, center, radius, color, color2) {
     super();
     this.gl = gl;
 
@@ -53,10 +53,17 @@ export default class RasterSphere extends Rasterizable {
 
     this.colors = [];
     for (let i = 0; i < this.vertices.length / 3; i++) {
-      this.colors.push(color.r);
-      this.colors.push(color.g);
-      this.colors.push(color.b);
-      this.colors.push(color.a);
+      if (color2 && (i % 2) == 0) {
+        this.colors.push(color2.r);
+        this.colors.push(color2.g);
+        this.colors.push(color2.b);
+        this.colors.push(color2.a);
+      } else {
+        this.colors.push(color.r);
+        this.colors.push(color.g);
+        this.colors.push(color.b);
+        this.colors.push(color.a);
+      }
     }
 
     this.fillBuffers();

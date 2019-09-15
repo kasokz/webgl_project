@@ -96,11 +96,12 @@ export class SphereNode extends Node {
     * @param  {number} radius - The radius of the Sphere
     * @param  {Vector} color  - The colour of the Sphere
   */
-  constructor(id, center, radius, color) {
+  constructor(id, center, radius, color, color2) {
     super(id);
     this.center = center;
     this.radius = radius;
     this.color = color;
+    this.color2 = color2;
   }
 
   toJSON() {
@@ -109,11 +110,20 @@ export class SphereNode extends Node {
       type: this.constructor.name,
       center: this.center,
       radius: this.radius,
-      color: this.color
+      color: this.color,
+      color2: this.color2
     }
   }
 
   static fromJSON(obj) {
+    if (obj.color2) {
+      const col2 = new Vector(obj.color2._x, obj.color2._y, obj.color2._z, obj.color2._w);
+      return new SphereNode(obj.id,
+        new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w),
+        obj.radius,
+        new Vector(obj.color._x, obj.color._y, obj.color._z, obj.color._w),
+        col2);
+    }
     return new SphereNode(obj.id,
       new Vector(obj.center._x, obj.center._y, obj.center._z, obj.center._w),
       obj.radius,
