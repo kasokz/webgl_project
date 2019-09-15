@@ -36,5 +36,5 @@ void main(void){
       gl_FragColor+=(diffuse(lightPositions[i]) + specular(lightPositions[i]));
     }
   }
-  gl_FragColor.a = 1.;
+  gl_FragColor.a = v_color.a;
 }

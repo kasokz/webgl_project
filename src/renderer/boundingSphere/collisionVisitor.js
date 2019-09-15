@@ -1,7 +1,7 @@
 import Visitor from "../visitor.js";
 import Matrix from "../../math/matrix.js";
 import RasterSphere from "../../scenegraph/rasterizer/raster-sphere.js";
-import { phongConfiguration, mousePosition, hoveredNode } from "../../state/stores.js";
+import { phongConfiguration, mousePosition, hoveredNode, mouseClicked, sceneGraph } from "../../state/stores.js";
 import { get } from "svelte/store";
 import Vector from "../../math/vector.js";
 import { SphereNode } from "../../scenegraph/nodes.js";
@@ -31,6 +31,7 @@ export class CollisionVisitor extends Visitor {
   render(rootNode) {
     this.minIntersection = new Intersection();
     this.intersectedNode = {};
+    sceneGraph.remove("debug");
     this.lightSearch = false;
     this.shouldRender = false;
     this.intersectionSearch = false;
@@ -44,6 +45,18 @@ export class CollisionVisitor extends Visitor {
     this.intersectionSearch = false;
     this.shouldRender = true;
     rootNode.accept(this);
+    if (get(mouseClicked)) {
+      this.drawDebug();
+    }
+  }
+
+  drawDebug() {
+    const toWorld = (this.perspective.mul(this.lookat)).invert();
+    let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
+    from = from.div(from.w);
+    const debugFrom = new SphereNode("debug", new Vector(from.x, from.y, from.z, 1), 0.1, new Vector(1, 0, 0, 0.3));
+    debugFrom.rasterObject = new RasterSphere(this.gl, new Vector(from.x, from.y, from.z, 1), 0.1, new Vector(1, 0, 0, 0.3));
+    sceneGraph.add(debugFrom);
   }
 
   draw(node) {
@@ -62,32 +75,26 @@ export class CollisionVisitor extends Visitor {
   }
 
   getIntersection(node) {
-    // const toWorld = (this.lookat.mul(this.perspective)).invert();
-    // let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
-    // from = from.div(from.w);
-    // let to = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, 1, 1));
-    // to = to.div(to.w);
-    // console.log("from", from);
-    // console.log("to", from.add(to.sub(from).normalised()));
-    // // console.log("node", this.matrixStack.top().mul(node.boundingSphere.center));
-    // const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
-    //   node.boundingSphere.radius).intersect({ origin: from, direction: to.sub(from).normalised() });
-    // if (intersection && intersection.closerThan(this.minIntersection)) {
-    //   this.minIntersection = intersection;
-    //   this.intersectedNode = node;
-    // }
-    const rayClip = new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1);
-    const rayEye = this.perspective.invert().mul(rayClip);
-    rayEye.z = -1;
-    rayEye.w = 0;
-    const rayWorld = this.lookat.invert().mul(rayEye).normalised();
-    // console.log( this.cameraWorld);
+    const toWorld = (this.perspective.mul(this.lookat)).invert();
+    let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
+    from = from.div(from.w);
     const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
-      node.boundingSphere.radius).intersect({ origin: this.cameraWorld, direction: rayWorld });
+      node.boundingSphere.radius).intersect({ origin: this.cameraWorld, direction: from.sub(this.cameraWorld).normalised() });
     if (intersection && intersection.closerThan(this.minIntersection)) {
       this.minIntersection = intersection;
       this.intersectedNode = node;
     }
+    // const rayClip = new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1);
+    // const rayEye = this.perspective.invert().mul(rayClip);
+    // rayEye.z = -1;
+    // rayEye.w = 0;
+    // const rayWorld = this.lookat.invert().mul(rayEye).normalised();
+    // const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
+    //   node.boundingSphere.radius).intersect({ origin: this.cameraWorld, direction: rayWorld });
+    // if (intersection && intersection.closerThan(this.minIntersection)) {
+    //   this.minIntersection = intersection;
+    //   this.intersectedNode = node;
+    // }
   }
 
   /**
@@ -107,9 +114,7 @@ export class CollisionVisitor extends Visitor {
 
   visitCameraNode(node) {
     if (!this.shouldRender && !this.intersectionSearch) {
-      this.camera = node;
-      this.cameraWorld = this.matrixStack.top().mul(node.center);
-      this.lookat = this.inverseMatrixStack.top();
+      super.visitCameraNode(node);
     }
   }
 }

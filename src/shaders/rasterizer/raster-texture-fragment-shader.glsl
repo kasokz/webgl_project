@@ -41,5 +41,5 @@ void main( void ) {
       gl_FragColor += vec4((textureColor* diffuse(lightPositions[i], normalize(v_normal + normalCoord.xyz)) + textureColor* specular(lightPositions[i], normalize(v_normal + normalCoord.xyz))).xyz, 1.0);
     }
   }
-  gl_FragColor.a = 1.;
+  gl_FragColor.a = textureColor.a;
 }

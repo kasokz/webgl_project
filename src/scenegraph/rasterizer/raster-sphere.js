@@ -56,7 +56,7 @@ export default class RasterSphere extends Rasterizable {
       this.colors.push(color.r);
       this.colors.push(color.g);
       this.colors.push(color.b);
-      this.colors.push(1.0);
+      this.colors.push(color.a);
     }
 
     this.fillBuffers();

@@ -1,5 +1,5 @@
 <script>
-  import { selectedNode, hoveredNode } from "../state/stores.js";
+  import { sceneGraph, selectedNode, hoveredNode } from "../state/stores.js";
 
   export let node;
 
@@ -9,6 +9,11 @@
 
   const mouseEnter = () => {
     hoveredNode.set(node);
+  };
+
+  const remove = event => {
+    event.preventDefault();
+    sceneGraph.remove(node.id);
   };
 </script>
 
@@ -35,7 +40,8 @@
 <span
   class:active={$selectedNode === node}
   on:click={click}
-  on:mouseenter={mouseEnter}>
+  on:mouseenter={mouseEnter}
+  on:contextmenu={remove}>
   <strong>{node.id}</strong>
   {` (${node.constructor.name})`}
 </span>

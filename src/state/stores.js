@@ -9,7 +9,19 @@ const createSceneGraph = () => {
     subscribe,
     set,
     add: (node) => update(sg => { sg.add(node); return sg }),
-    remove: (node) => update(sg => sg.filter((_, i) => i !== sg.indexOf(node))),
+    remove: (toRemove) => update(sg => {
+      const stack = [];
+      sg.children = sg.children.filter(n => n.id != toRemove);
+      stack.push.apply(stack, sg.children);
+      while (stack.length > 0) {
+        const node = stack.pop();
+        if (node instanceof GroupNode) {
+          node.children = node.children.filter(n => n.id != toRemove);
+          stack.push.apply(stack, node.children);
+        }
+      }
+      return sg;
+    }),
   }
 }
 
@@ -87,5 +99,6 @@ export const camera = writable({});
 export const keysPressed = createKeysPressed();
 export const selectedNode = writable({});
 export const hoveredNode = writable({});
+export const mouseClicked = writable(false);
 export const sceneGraph = createSceneGraph();
 export const animationNodes = createAnimationNodes();

@@ -9,7 +9,8 @@
     keysPressed,
     selectedNode,
     mouseOffsets,
-    mousePosition
+    mousePosition,
+    mouseClicked
   } from "./state/stores.js";
 
   import vertexShader from "./shaders/rasterizer/raster-vertex-shader.glsl";
@@ -68,7 +69,7 @@
     webgl.depthFunc(webgl.LEQUAL);
     webgl.enable(webgl.BLEND);
     webgl.blendFunc(webgl.SRC_ALPHA, webgl.ONE_MINUS_SRC_ALPHA);
-    webgl.getExtension('OES_element_index_uint');
+    webgl.getExtension("OES_element_index_uint");
     createDemoSceneGraph(canvas);
 
     rayVisitor = new RayVisitor(
@@ -89,7 +90,7 @@
 
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
-    // collisionSetupVisitor.setup($sceneGraph);
+    collisionSetupVisitor.setup($sceneGraph);
 
     const simulate = deltaT => {
       for (let animationNode of $animationNodes) {
@@ -101,7 +102,7 @@
     const animateFunc = timestamp => {
       simulate(timestamp - lastTimestamp);
       activeRenderer.render($sceneGraph);
-      // collisionVisitor.render($sceneGraph);
+      collisionVisitor.render($sceneGraph);
       lastTimestamp = timestamp;
       window.requestAnimationFrame(animateFunc);
     };
@@ -213,6 +214,18 @@
     $animationNodes
       .filter(node => node instanceof FreeFlightNode)
       .forEach(node => (node.active = true));
+  };
+
+  const handleMouseDown = event => {
+    if (event.which == 1) {
+      $mouseClicked = true;
+    }
+  };
+
+  const handleMouseUp = event => {
+    if (event.which == 1) {
+      $mouseClicked = false;
+    }
   };
 </script>
 
@@ -341,5 +354,7 @@
     on:contextmenu={startFreeFlight}
     on:mousemove={handleMouseMove}
     on:mouseenter={toggleIntersectSearch}
-    on:mouseleave={toggleIntersectSearch} />
+    on:mouseleave={toggleIntersectSearch}
+    on:mousedown={handleMouseDown}
+    on:mouseup={handleMouseUp} />
 </div>

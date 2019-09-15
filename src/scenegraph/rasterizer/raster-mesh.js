@@ -20,7 +20,6 @@ export default class RasterMesh extends Rasterizable {
     this.indices = [];
     this.normals = [];
     this.colors = [];
-    let hasNaNs = false;
     fetch(url).then(resp => resp.text()).then(contents => {
       const mesh = parseObjectFile(contents);
       mesh.indices.forEach(index => {
@@ -43,11 +42,10 @@ export default class RasterMesh extends Rasterizable {
         this.colors.push(color.r);
         this.colors.push(color.g);
         this.colors.push(color.b);
-        this.colors.push(1.0);
+        this.colors.push(color.a);
       }
       this.indices = [...Array(this.vertices.length / 3).keys()];
       this.fillBuffers();
-      console.log(hasNaNs);
     }).then(() => this.loaded = true);
   }
 }
@@ -82,6 +80,5 @@ const parseObjectFile = contents => {
       }
     }
   });
-  console.log(vertices);
   return { vertices, normals, indices };
 }

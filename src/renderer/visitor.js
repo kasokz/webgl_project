@@ -46,7 +46,7 @@ export default class Visitor {
     * Helper function to setup camera matrices
     */
   setupCamera() {
-    this.lookat = Matrix.lookat(this.camera.eye, this.camera.center, this.camera.up).mul(this.lookat);
+    this.lookat = Matrix.lookat(this.camera.eye, this.camera.center, this.camera.up).mul(this.viewMat);
     this.perspective = Matrix.perspective(this.camera.fovy, this.camera.aspect, this.camera.near, this.camera.far);
   }
 
@@ -67,8 +67,8 @@ export default class Visitor {
   visitCameraNode(node) {
     if (!this.shouldRender && !this.lightSearch) {
       this.camera = node;
-      this.cameraWorld = this.matrixStack.top().mul(node.center);
-      this.lookat = this.inverseMatrixStack.top();
+      this.cameraWorld = this.matrixStack.top().mul(node.eye);
+      this.viewMat = this.inverseMatrixStack.top();
     }
   }
 

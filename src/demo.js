@@ -15,7 +15,7 @@ import Matrix from "./math/matrix.js";
 
 const createDemoSceneGraph = (canvas) => {
   sceneGraph.set(
-    new GroupNode("root", Matrix.scaling(new Vector(0.2, 0.2, 0.2)))
+    new GroupNode("root", Matrix.identity())
   );
   const sphereNode = new GroupNode(
     "sphereNode1",
@@ -146,7 +146,7 @@ const createDemoSceneGraph = (canvas) => {
   sceneGraph.add(clockTower);
   sceneGraph.add(lightNode);
   sceneGraph.add(sunNode);
-  sceneGraph.add(lucyGroup);
+  // sceneGraph.add(lucyGroup);
 
 
   animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1)));
