@@ -1,7 +1,7 @@
 import Visitor from "../visitor.js";
 import Matrix from "../../math/matrix.js";
 import RasterSphere from "../../scenegraph/rasterizer/raster-sphere.js";
-import { phongConfiguration, mousePosition, hoveredNode, mouseClicked, sceneGraph } from "../../state/stores.js";
+import { phongConfiguration, mousePosition, hoveredNode, mouseClicked, sceneGraph, selectedNode } from "../../state/stores.js";
 import { get } from "svelte/store";
 import Vector from "../../math/vector.js";
 import { SphereNode } from "../../scenegraph/nodes.js";
@@ -46,17 +46,8 @@ export class CollisionVisitor extends Visitor {
     this.shouldRender = true;
     rootNode.accept(this);
     if (get(mouseClicked)) {
-      this.drawDebug();
+      selectedNode.set(get(hoveredNode));
     }
-  }
-
-  drawDebug() {
-    const toWorld = (this.perspective.mul(this.lookat)).invert();
-    let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
-    from = from.div(from.w);
-    const debugFrom = new SphereNode("debug", new Vector(from.x, from.y, from.z, 1), 0.1, new Vector(1, 0, 0, 0.3));
-    debugFrom.rasterObject = new RasterSphere(this.gl, new Vector(from.x, from.y, from.z, 1), 0.1, new Vector(1, 0, 0, 0.3));
-    sceneGraph.add(debugFrom);
   }
 
   draw(node) {
@@ -68,6 +59,8 @@ export class CollisionVisitor extends Visitor {
     shader.trySet(shader.getUniformMatrix.bind(shader), 'P', this.perspective);
     if (node == get(hoveredNode)) {
       shader.trySet(shader.getUniformVec4.bind(shader), 'color', new Vector(1, 1, 0, 0.5));
+    } else if (node == get(selectedNode)) {
+      shader.trySet(shader.getUniformVec4.bind(shader), 'color', new Vector(1, 0.64, 0, 0.5));
     } else {
       shader.trySet(shader.getUniformVec4.bind(shader), 'color', new Vector(1, 0, 0, 0.5));
     }

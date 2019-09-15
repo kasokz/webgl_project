@@ -17,62 +17,31 @@ const createDemoSceneGraph = (canvas) => {
   sceneGraph.set(
     new GroupNode("root", Matrix.identity())
   );
-  const sphereNode = new GroupNode(
-    "sphereNode1",
-    Matrix.translation(new Vector(-5, 0, 0))
-  );
-  sphereNode.add(
-    new AABoxNode(
-      "nose",
-      new Vector(0.5, 0.5, 0.5, 1),
-      new Vector(-0.5, -0.5, -0.5, 1),
-      new Vector(0, 0, 1, 1)
-    )
-  );
-  const nose = new GroupNode(
-    "noseGroup",
-    Matrix.translation(new Vector(0, 0, -1))
-  );
-  nose.add(
-    new SphereNode(
-      "sphere1",
-      new Vector(0, 0, 0, 1),
-      0.5,
-      new Vector(0.8, 0.4, 0.1, 1)
-    )
-  );
-  sphereNode.add(nose);
-
-  const clockTower = new GroupNode(
-    "clockTower",
-    Matrix.translation(new Vector(0, 0.0, -8.0))
-  );
-  const towerBase = new GroupNode("towerBaseNode", Matrix.translation(new Vector(0, -3, 0)));
-  towerBase.add(
-    new AABoxNode(
+  const baseTranslation = new GroupNode("baseTranslation", Matrix.translation(new Vector(0, 0, -8)));
+  const desktopBase = new GroupNode("desktopBase", Matrix.identity());
+  baseTranslation.add(desktopBase);
+  desktopBase.add(
+    new TextureBoxNode(
       "towerBase",
-      new Vector(-0.5, -1, -0.5, 1),
-      new Vector(0.5, 6, 0.5, 1),
-      new Vector(0.8, 0.2, 0.4, 1)
+      new Vector(-2, -2, -2, 1),
+      new Vector(2, 2, 2, 1),
+      "hci-logo.png",
+      "wood.jpg",
     )
   );
-  const clockHand = new GroupNode(
-    "clockHandGroup",
-    Matrix.translation(new Vector(0, 5, 1))
-  );
-  const clockHandRoot = new GroupNode("clockHandRoot", Matrix.identity());
+  const clockHandRoot = new GroupNode("clockHandRoot", Matrix.translation(new Vector(0, 0, 2)));
   clockHandRoot.add(
     new PyramidNode(
       "clockHand",
-      new Vector(-0.5, -1, -0.5, 1),
-      new Vector(0.5, -1, 0.5, 1),
-      4,
+      new Vector(-0.25, -0.5, -0.25, 1),
+      new Vector(0.25, -0.5, 0.25, 1),
+      2,
       new Vector(0, 0.6, 0, 1)
     )
   );
   const clockFix = new GroupNode(
     "clockFixNode",
-    Matrix.translation(new Vector(0, 0, 0.5))
+    Matrix.translation(new Vector(0, 0, 0.25, 1))
   );
   clockFix.add(
     new SphereNode(
@@ -82,43 +51,41 @@ const createDemoSceneGraph = (canvas) => {
       new Vector(0.5, 0.2, 0.4, 1)
     )
   );
-  const rotatingBlockGroup = new GroupNode(
-    "rotatingBlockGroup",
-    Matrix.translation(new Vector(0, 4, 0))
+  const clockHandTip = new GroupNode(
+    "clockHandTipGroup",
+    Matrix.translation(new Vector(0, 2, 0, 1)).mul(Matrix.scaling(new Vector(0.5, 0.5, 0.5)))
   );
-  let group2 = new GroupNode(
-    "group2",
-    Matrix.translation(new Vector(0, 0, 0))
-  );
-  let cubeNode = new GroupNode("cubeNode1", Matrix.identity());
-  cubeNode.add(
-    new TextureBoxNode(
-      "textureBox1",
-      new Vector(-1, -1, -1, 1),
-      new Vector(1, 1, 1, 1),
-      "hci-logo.png",
-      "wave_normal.png"
+  clockHandTip.add(
+    new MeshNode(
+      "clockMonkey",
+      "http://localhost:5000/monkey.obj",
+      new Vector(0.3, 0.2, 0.0, 1)
     )
   );
-  group2.add(cubeNode);
-  rotatingBlockGroup.add(group2);
-  clockFix.add(rotatingBlockGroup);
-  clockTower.add(towerBase);
-  towerBase.add(clockHand);
-  clockHand.add(clockHandRoot);
+  clockFix.add(clockHandTip);
   clockHandRoot.add(clockFix);
+  desktopBase.add(clockHandRoot);
 
-  const monkeyGroup = new GroupNode("monkeyGroup", Matrix.translation(new Vector(-3, 0, 1, -1)));
-  monkeyGroup.add(new MeshNode("monkey", "http://localhost:5000/monkey.obj", new Vector(0.8, 0.5, .03, 1)));
+
   const teapotGroup = new GroupNode("teapotGroup", Matrix.translation(
-    new Vector(5, 0, -11, 1)).mul(Matrix.scaling(
-      new Vector(0.5, 0.5, 0.5))).mul(
-        Matrix.rotation(new Vector(0, 1, 0), 180)));
-  teapotGroup.add(new MeshNode("teapot", "http://localhost:5000/teapot.obj", new Vector(0, 0.8, 0.2, 1)));
+    new Vector(0, 2.05, 0, 1)).mul(Matrix.scaling(
+      new Vector(0.4, 0.4, 0.4))));
+  teapotGroup.add(new MeshNode("teapot", "http://localhost:5000/teapot.obj", new Vector(1, 0.8, 0, 1)));
+  desktopBase.add(teapotGroup);
+
+  const carpetGroup = new GroupNode("carpetGroup", Matrix.translation(new Vector(0, -2, 0)));
+  carpetGroup.add(new TextureBoxNode("carpet", new Vector(-20, 0, -20, 1), new Vector(20, 0.01, 20), "carpet.jpg"));
+  baseTranslation.add(carpetGroup);
+
   const lucyGroup = new GroupNode("lucyGroup", Matrix.scaling(
     new Vector(5, 5, 5)));
   lucyGroup.add(new MeshNode("lucy", "http://localhost:5000/lucyBig.obj", new Vector(0, 0.8, 0.2, 1)));
 
+  const house = new GroupNode("houseGroup", Matrix.translation(new Vector(0, -2.1, 0)));
+  house.add(new TextureBoxNode("houseNode", new Vector(-20, 0, -20, 1), new Vector(20, 20, 20), "shack.jpg"));
+  baseTranslation.add(house);
+
+  const cameraHolder = new GroupNode("camerHolder", Matrix.translation(new Vector(0, 2, 0, 1)));
   const cameraNode = new GroupNode("cameraNode", Matrix.identity());
   cameraNode.add(
     new CameraNode(
@@ -132,30 +99,21 @@ const createDemoSceneGraph = (canvas) => {
       100
     )
   );
-  const lightNode = new GroupNode("lightNode", Matrix.identity());
+  cameraHolder.add(cameraNode);
+  const lightNode = new GroupNode("lightNode", Matrix.translation(new Vector(0, 5, 0, 1)));
   lightNode.add(new LightNode("centerLight", new Vector(1, 0, 0, 1)))
-  lightNode.add(new SphereNode("centerLightVis", new Vector(0, 0, 0), 0.1, new Vector(1, 1, 1, 1)));
   const sunNode = new GroupNode("sunNode", Matrix.translation(new Vector(20, 0, 0, 1)));
   sunNode.add(new LightNode("sun", new Vector(1, 1, 0, 1)));
-  sunNode.add(new SphereNode("sunVis", new Vector(0, 0, 0), 0.1, new Vector(1, 1, 0, 1)));
 
-  sceneGraph.add(cameraNode);
-  sceneGraph.add(sphereNode);
-  sceneGraph.add(teapotGroup);
-  sceneGraph.add(monkeyGroup);
-  sceneGraph.add(clockTower);
+  sceneGraph.add(cameraHolder);
+  sceneGraph.add(baseTranslation);
   sceneGraph.add(lightNode);
   sceneGraph.add(sunNode);
-  // sceneGraph.add(lucyGroup);
 
-
-  animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1)));
-  animationNodes.add(new ManualRotationNode(sphereNode.id, new Vector(0, 1, 0)));
-  animationNodes.add(new RotationNode(cubeNode.id, new Vector(0, 1, 0)));
-  animationNodes.add(new BouncingNode(sphereNode.id, new Vector(0, 1, 0), 2, 5));
-  animationNodes.add(new ManualRotationNode(towerBase.id, new Vector(0, 1, 0)));
-  animationNodes.add(new DriverNode(lightNode.id));
-  animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 1)));
+  animationNodes.add(new RotationNode(desktopBase.id, new Vector(0, 1, 0), 45));
+  animationNodes.add(new BouncingNode(clockHandTip.id, new Vector(0, 1, 0), 0.25, 2));
+  animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1), 90));
+  animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 1), 90));
   animationNodes.add(new FreeFlightNode(cameraNode.id, 0.5));
 }
 

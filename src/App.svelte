@@ -261,14 +261,14 @@
   }
 
   .sidebar__scenegraph {
-    height: 48%;
+    height: 70%;
     box-shadow: 0.1em 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.5);
     background-color: rgba(255, 166, 0, 0.404);
     margin-bottom: 2%;
   }
 
   .sidebar__configurator {
-    height: 50%;
+    height: 28%;
     overflow-y: auto;
     box-shadow: 0.1em 0.1em 0.1em 0.1em rgba(0, 0, 0, 0.5);
     background-color: rgba(255, 166, 0, 0.404);

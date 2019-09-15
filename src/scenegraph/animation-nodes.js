@@ -47,9 +47,9 @@ export class RotationNode extends AnimationNode {
    * @param {string} groupNodeId - The group node to attach to
    * @param {Vector} axis         - The axis to rotate around
    */
-  constructor(groupNodeId, axis) {
+  constructor(groupNodeId, axis, angle) {
     super(groupNodeId);
-    this.angle = 90;
+    this.angle = angle;
     this.axis = axis;
     this.origin = this.groupNode.matrix.transpose().transpose();
     this.currentAngle = 0;
@@ -73,12 +73,13 @@ export class RotationNode extends AnimationNode {
       axis: this.axis,
       currentAngle: this.currentAngle,
       origin: this.origin,
+      angle: this.angle,
     }
   }
 
   static fromJSON(obj) {
     const axis = new Vector(obj.axis._x, obj.axis._y, obj.axis._z, obj.axis._w);
-    const result = new RotationNode(obj.groupNodeId, axis);
+    const result = new RotationNode(obj.groupNodeId, axis, obj.angle);
     result.currentAngle = obj.currentAngle;
     result.origin.data = obj.origin.data;
     return result;
@@ -203,8 +204,11 @@ export class DriverNode extends AnimationNode {
      * Creates a new FreeFlightNode
      * @param {GroupNode} groupNode - The group node to attach to
      */
-  constructor(groupNodeId) {
+  constructor(groupNodeId, firstAxis, secondAxis, speed) {
     super(groupNodeId);
+    this.speed = speed;
+    this.firstAxis = firstAxis;
+    this.secondAxis = secondAxis;
     this.origin = this.groupNode.matrix.transpose().transpose();
     this.translationMatrix = Matrix.identity();
     this.active = true;
@@ -218,16 +222,16 @@ export class DriverNode extends AnimationNode {
     if (this.active) {
       if (get(selectedNode) === this.groupNode) {
         if (get(keysPressed).get("ArrowRight")) {
-          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(deltaT / 1000)).mul(this.translationMatrix);
+          this.translationMatrix = Matrix.translation(this.firstAxis.mul(deltaT * this.speed / 1000)).mul(this.translationMatrix);
         }
         if (get(keysPressed).get("ArrowLeft")) {
-          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getLeftVector().mul(-deltaT / 1000)).mul(this.translationMatrix);
+          this.translationMatrix = Matrix.translation(this.firstAxis.mul(-deltaT * this.speed / 1000)).mul(this.translationMatrix);
         }
         if (get(keysPressed).get("ArrowUp")) {
-          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(deltaT / 1000)).mul(this.translationMatrix);
+          this.translationMatrix = Matrix.translation(this.secondAxis.mul(deltaT * this.speed / 1000)).mul(this.translationMatrix);
         }
         if (get(keysPressed).get("ArrowDown")) {
-          this.translationMatrix = Matrix.translation(this.groupNode.matrix.getUpVector().mul(-deltaT / 1000)).mul(this.translationMatrix);
+          this.translationMatrix = Matrix.translation(this.secondAxis.mul(-deltaT * this.speed / 1000)).mul(this.translationMatrix);
         }
         this.groupNode.matrix = this.translationMatrix.mul(this.origin);
       }
@@ -241,11 +245,16 @@ export class DriverNode extends AnimationNode {
       groupNodeId: this.groupNode.id,
       translationMatrix: this.translationMatrix,
       origin: this.origin,
+      firstAxis: this.firstAxis,
+      secondAxis: this.secondAxis,
+      speed: this.speed,
     }
   }
 
   static fromJSON(obj) {
-    const result = new DriverNode(obj.groupNodeId);
+    const firstAxis = new Vector(obj.firstAxis._x, obj.firstAxis._y, obj.firstAxis._z, obj.firstAxis._w);
+    const secondAxis = new Vector(obj.secondAxis._x, obj.secondAxis._y, obj.secondAxis._z, obj.secondAxis._w);
+    const result = new DriverNode(obj.groupNodeId, firstAxis, secondAxis, obj.speed);
     result.translationMatrix.data = obj.translationMatrix.data;
     result.origin.data = obj.origin.data;
     return result;
