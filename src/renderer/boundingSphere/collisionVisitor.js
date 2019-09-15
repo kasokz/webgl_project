@@ -62,13 +62,28 @@ export class CollisionVisitor extends Visitor {
   }
 
   getIntersection(node) {
-    const toWorld = (this.perspective.mul(this.lookat)).invert();
-    let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
-    from = from.div(from.w);
-    let to = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, 1, 1));
-    to = to.div(to.w);
+    // const toWorld = (this.lookat.mul(this.perspective)).invert();
+    // let from = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1));
+    // from = from.div(from.w);
+    // let to = toWorld.mul(new Vector(get(mousePosition).x, get(mousePosition).y, 1, 1));
+    // to = to.div(to.w);
+    // console.log("from", from);
+    // console.log("to", from.add(to.sub(from).normalised()));
+    // // console.log("node", this.matrixStack.top().mul(node.boundingSphere.center));
+    // const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
+    //   node.boundingSphere.radius).intersect({ origin: from, direction: to.sub(from).normalised() });
+    // if (intersection && intersection.closerThan(this.minIntersection)) {
+    //   this.minIntersection = intersection;
+    //   this.intersectedNode = node;
+    // }
+    const rayClip = new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1);
+    const rayEye = this.perspective.invert().mul(rayClip);
+    rayEye.z = -1;
+    rayEye.w = 0;
+    const rayWorld = this.lookat.invert().mul(rayEye).normalised();
+    // console.log( this.cameraWorld);
     const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
-      node.boundingSphere.radius).intersect({ origin: from, direction: from.sub(to).normalised() });
+      node.boundingSphere.radius).intersect({ origin: this.cameraWorld, direction: rayWorld });
     if (intersection && intersection.closerThan(this.minIntersection)) {
       this.minIntersection = intersection;
       this.intersectedNode = node;

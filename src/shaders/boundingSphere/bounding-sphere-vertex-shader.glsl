@@ -8,7 +8,7 @@ uniform mat4 P;
 
 void main(){
   vec3 throwAway = a_normal;
-  throwAway = a_position;
+  throwAway = vec3(0.,0.,0.);
   vec4 color = a_colour;
   color = vec4(0.,0.,0.,0.);
   mat4 modelView = V * M;

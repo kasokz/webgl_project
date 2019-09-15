@@ -25,18 +25,21 @@ export default class Sphere {
     let rayDir = ray.direction;
 
     let t = this.center.sub(rayOrigin).dot(rayDir);
-    let perp = rayOrigin.add(rayDir.mul(t));
-    let y = this.center.sub(perp).length;
-    if (y < this.radius) {
-      let x = Math.sqrt(this.radius * this.radius - y * y);
-      let t1 = t - x;
-      let t2 = t + x;
-      let firstHitDistance = Math.min(t1, t2);
-      return new Intersection(
-        firstHitDistance,
-        rayOrigin.add(rayDir.mul(firstHitDistance)),
-        rayOrigin.add(rayDir.mul(firstHitDistance)).sub(this.center).normalised()
-      );
+    if (t > 0) {
+      let perp = rayOrigin.add(rayDir.mul(t));
+      let y = this.center.sub(perp).length;
+      if (y < this.radius) {
+        let x = Math.sqrt(this.radius * this.radius - y * y);
+        let t1 = t - x;
+        let t2 = t + x;
+        let firstHitDistance = Math.min(t1, t2);
+        console.log(rayDir.mul(firstHitDistance));
+        return new Intersection(
+          firstHitDistance,
+          rayOrigin.add(rayDir.mul(firstHitDistance)),
+          rayOrigin.add(rayDir.mul(firstHitDistance)).sub(this.center).normalised()
+        );
+      }
     }
     return null;
   }
