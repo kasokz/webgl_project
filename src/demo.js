@@ -129,7 +129,8 @@ const createDemoSceneGraph = (canvas) => {
 
   animationNodes.add(new DriverNode(sphereConstellation.id, new Vector(1, 0, 0), new Vector(0, 0, -1), 5));
   animationNodes.add(new RotationNode(desktopBase.id, new Vector(0, 1, 0), 45));
-  animationNodes.add(new BouncingNode(clockHandTip.id, new Vector(0, 1, 0), 0.25, 2));
+  animationNodes.add(new BouncingNode(clockHandTip.id, new Vector(0, 1, 0), 1, 2));
+  animationNodes.add(new BouncingNode(lightNode.id, new Vector(1, 0, 0), 0.25, 2));
   animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1), 90));
   animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 0), 90));
   animationNodes.add(new RotationNode(bunny.id, new Vector(0, 1, 0), 90));
