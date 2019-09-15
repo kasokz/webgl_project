@@ -19,7 +19,7 @@ const createDemoSceneGraph = (canvas) => {
   );
   const sphereNode = new GroupNode(
     "sphereNode1",
-    Matrix.translation(new Vector(0, 0, 0))
+    Matrix.translation(new Vector(-5, 0, 0))
   );
   sphereNode.add(
     new AABoxNode(
@@ -115,6 +115,9 @@ const createDemoSceneGraph = (canvas) => {
       new Vector(0.5, 0.5, 0.5))).mul(
         Matrix.rotation(new Vector(0, 1, 0), 180)));
   teapotGroup.add(new MeshNode("teapot", "http://localhost:5000/teapot.obj", new Vector(0, 0.8, 0.2, 1)));
+  const lucyGroup = new GroupNode("lucyGroup", Matrix.scaling(
+    new Vector(5, 5, 5)));
+  lucyGroup.add(new MeshNode("lucy", "http://localhost:5000/lucyBig.obj", new Vector(0, 0.8, 0.2, 1)));
 
   const cameraNode = new GroupNode("cameraNode", Matrix.identity());
   cameraNode.add(
@@ -138,20 +141,21 @@ const createDemoSceneGraph = (canvas) => {
 
   sceneGraph.add(cameraNode);
   sceneGraph.add(sphereNode);
-  // sceneGraph.add(teapotGroup);
-  // sceneGraph.add(monkeyGroup);
-  // sceneGraph.add(clockTower);
+  sceneGraph.add(teapotGroup);
+  sceneGraph.add(monkeyGroup);
+  sceneGraph.add(clockTower);
   sceneGraph.add(lightNode);
   sceneGraph.add(sunNode);
+  sceneGraph.add(lucyGroup);
 
 
-  // animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1)));
-  // animationNodes.add(new ManualRotationNode(sphereNode.id, new Vector(0, 1, 0)));
-  // animationNodes.add(new RotationNode(cubeNode.id, new Vector(0, 1, 0)));
-  // animationNodes.add(new BouncingNode(sphereNode.id, new Vector(0, 1, 0), 2, 5));
-  // animationNodes.add(new ManualRotationNode(towerBase.id, new Vector(0, 1, 0)));
-  // animationNodes.add(new DriverNode(lightNode.id));
-  // animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 1)));
+  animationNodes.add(new RotationNode(clockHandRoot.id, new Vector(0, 0, 1)));
+  animationNodes.add(new ManualRotationNode(sphereNode.id, new Vector(0, 1, 0)));
+  animationNodes.add(new RotationNode(cubeNode.id, new Vector(0, 1, 0)));
+  animationNodes.add(new BouncingNode(sphereNode.id, new Vector(0, 1, 0), 2, 5));
+  animationNodes.add(new ManualRotationNode(towerBase.id, new Vector(0, 1, 0)));
+  animationNodes.add(new DriverNode(lightNode.id));
+  animationNodes.add(new RotationNode(sunNode.id, new Vector(0, 1, 1)));
   animationNodes.add(new FreeFlightNode(cameraNode.id, 0.5));
 }
 

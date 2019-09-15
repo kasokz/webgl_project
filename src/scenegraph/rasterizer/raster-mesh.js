@@ -20,14 +20,25 @@ export default class RasterMesh extends Rasterizable {
     this.indices = [];
     this.normals = [];
     this.colors = [];
+    let hasNaNs = false;
     fetch(url).then(resp => resp.text()).then(contents => {
       const mesh = parseObjectFile(contents);
       mesh.indices.forEach(index => {
+        if (isNaN(index.v) || isNaN(index.n)) {
+          hasNaNs = true;
+        }
         const vertex = mesh.vertices[index.v];
-        const normal = mesh.normals[index.n];
-        this.vertices.push(vertex.x, vertex.y, vertex.z);
-        this.normals.push(normal.x, normal.y, normal.z);
+        if (vertex) {
+          this.vertices.push(vertex.x, vertex.y, vertex.z);
+        }
+        if (mesh.normals.length > 0) {
+          const normal = mesh.normals[index.n];
+          this.normals.push(normal.x, normal.y, normal.z);
+        }
       });
+      if (mesh.normals.length === 0) {
+        this.calcNormals();
+      }
       for (let i = 0; i < this.vertices.length / 3; i++) {
         this.colors.push(color.r);
         this.colors.push(color.g);
@@ -36,8 +47,8 @@ export default class RasterMesh extends Rasterizable {
       }
       this.indices = [...Array(this.vertices.length / 3).keys()];
       this.fillBuffers();
-      this.loaded = true;
-    });
+      console.log(hasNaNs);
+    }).then(() => this.loaded = true);
   }
 }
 
@@ -47,7 +58,7 @@ const parseObjectFile = contents => {
   const normals = [];
   const indices = [];
   lines.forEach(line => {
-    const cols = line.trimRight().split(" ");
+    const cols = line.split(/\s/).filter(c => c.length > 0);
     if (cols.length > 0) {
       switch (cols[0]) {
         case "v":
@@ -57,14 +68,20 @@ const parseObjectFile = contents => {
           normals.push(new Vector(parseFloat(cols[1]), parseFloat(cols[2]), parseFloat(cols[3])));
           break;
         case "f":
-          const v1 = cols[1].split("/");
-          const v2 = cols[2].split("/");
-          const v3 = cols[3].split("/");
-          indices.push({ v: parseInt(v1[0]) - 1, n: parseInt(v1[2]) - 1 });
-          indices.push({ v: parseInt(v2[0]) - 1, n: parseInt(v2[2]) - 1 });
-          indices.push({ v: parseInt(v3[0]) - 1, n: parseInt(v3[2]) - 1 });
+          for (let i = 1; i < 4; i++) {
+            if (cols[i].includes("/")) {
+              const indCols = cols[i].split("/");
+              const vInd = parseInt(indCols[0]) - 1;
+              const nInd = indCols[2].length == 0 ? 0 : parseInt(indCols[2]) - 1;
+              indices.push({ v: vInd, n: nInd });
+            } else {
+              indices.push({ v: parseInt(cols[i]) - 1, n: 0 });
+            }
+          }
+          break;
       }
     }
   });
+  console.log(vertices);
   return { vertices, normals, indices };
 }

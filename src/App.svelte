@@ -68,6 +68,7 @@
     webgl.depthFunc(webgl.LEQUAL);
     webgl.enable(webgl.BLEND);
     webgl.blendFunc(webgl.SRC_ALPHA, webgl.ONE_MINUS_SRC_ALPHA);
+    webgl.getExtension('OES_element_index_uint');
     createDemoSceneGraph(canvas);
 
     rayVisitor = new RayVisitor(
@@ -88,7 +89,7 @@
 
     activeRenderer = rasterVisitor;
     rasterSetupVisitor.setup($sceneGraph);
-    collisionSetupVisitor.setup($sceneGraph);
+    // collisionSetupVisitor.setup($sceneGraph);
 
     const simulate = deltaT => {
       for (let animationNode of $animationNodes) {
@@ -100,7 +101,7 @@
     const animateFunc = timestamp => {
       simulate(timestamp - lastTimestamp);
       activeRenderer.render($sceneGraph);
-      collisionVisitor.render($sceneGraph);
+      // collisionVisitor.render($sceneGraph);
       lastTimestamp = timestamp;
       window.requestAnimationFrame(animateFunc);
     };

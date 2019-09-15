@@ -48,21 +48,7 @@ export default class RasterPyramid extends Rasterizable {
     ];
     this.indices = [...Array(this.vertices.length / 3).keys()];
 
-    const calcNormal = (v1, v2, v3) => {
-      const vec1 = v1.sub(v2);
-      const vec2 = v3.sub(v2);
-      return vec2.cross(vec1).normalised();
-    }
-    this.normals = [];
-    for (let i = 0; i < this.vertices.length;) {
-      const normal = calcNormal(
-        new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]),
-        new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]),
-        new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]));
-      this.normals.push(normal.x, normal.y, normal.z);
-      this.normals.push(normal.x, normal.y, normal.z);
-      this.normals.push(normal.x, normal.y, normal.z);
-    }
+    this.calcNormals();
 
     this.colors = [];
     for (let i = 0; i < this.vertices.length / 3; i++) {

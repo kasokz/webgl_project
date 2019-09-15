@@ -1,7 +1,27 @@
+import Vector from "../../math/vector.js";
+
 export default class Rasterizable {
 
   constructor() {
     this.loaded = true;
+  }
+
+  calcNormals() {
+    const calcNormal = (v1, v2, v3) => {
+      const vec1 = v1.sub(v2);
+      const vec2 = v3.sub(v2);
+      return vec2.cross(vec1).normalised();
+    }
+    this.normals = [];
+    for (let i = 0; i < this.vertices.length;) {
+      const normal = calcNormal(
+        new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]),
+        new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]),
+        new Vector(this.vertices[i++], this.vertices[i++], this.vertices[i++]));
+      this.normals.push(normal.x, normal.y, normal.z);
+      this.normals.push(normal.x, normal.y, normal.z);
+      this.normals.push(normal.x, normal.y, normal.z);
+    }
   }
 
   fillBuffers() {
@@ -12,7 +32,7 @@ export default class Rasterizable {
 
     const indexBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), this.gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indices), this.gl.STATIC_DRAW);
     this.indexBuffer = indexBuffer;
 
     const colourBuffer = this.gl.createBuffer();
@@ -48,7 +68,7 @@ export default class Rasterizable {
       this.gl.vertexAttribPointer(normalLocation, 3, this.gl.FLOAT, false, 0, 0);
 
       this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-      this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_SHORT, 0);
+      this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_INT, 0);
 
       this.gl.disableVertexAttribArray(positionLocation);
       this.gl.disableVertexAttribArray(colourLocation);

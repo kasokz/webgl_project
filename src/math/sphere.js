@@ -33,7 +33,7 @@ export default class Sphere {
         let t1 = t - x;
         let t2 = t + x;
         let firstHitDistance = Math.min(t1, t2);
-        console.log(rayDir.mul(firstHitDistance));
+        // console.log(rayDir.mul(firstHitDistance));
         return new Intersection(
           firstHitDistance,
           rayOrigin.add(rayDir.mul(firstHitDistance)),
