@@ -75,11 +75,11 @@ const createDemoSceneGraph = (canvas) => {
   desktopBase.add(teapotGroup);
 
   const carpetGroup = new GroupNode("carpetGroup", Matrix.translation(new Vector(0, -2, 0)));
-  carpetGroup.add(new TextureBoxNode("carpet-noColl", new Vector(-20, 0, -20, 1), new Vector(20, 0.01, 20), "carpet.jpg"));
+  carpetGroup.add(new TextureBoxNode("carpet-noColl", new Vector(-20, 0, -20, 1), new Vector(20, 0.01, 20), "carpet.jpg", "pillow.jpg"));
   baseTranslation.add(carpetGroup);
 
   const house = new GroupNode("houseGroup", Matrix.translation(new Vector(0, -2.1, 0)));
-  house.add(new TextureBoxNode("houseNode-noColl", new Vector(-20, 0, -20, 1), new Vector(20, 20, 20), "shack.jpg"));
+  house.add(new TextureBoxNode("houseNode-noColl", new Vector(-20, 0, -20, 1), new Vector(20, 20, 20), "shack.jpg", "wood.jpg"));
   baseTranslation.add(house);
 
   const sphereConstellation = new GroupNode("sphereRoot", Matrix.translation(new Vector(0, 8, 0)));

@@ -274,9 +274,11 @@
     background-color: rgba(255, 166, 0, 0.404);
   }
 
-  #header > a {
+  #header > .logo a {
     text-decoration: none;
     color: inherit;
+    padding-bottom: 0;
+    margin-bottom: 0;
   }
 
   input[type="file"] {
@@ -287,14 +289,31 @@
     position: absolute;
     z-index: -1;
   }
+
+  .logo {
+    display: flex;
+    flex-direction: row;
+  }
 </style>
 
 <svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
 <div class="main-container">
   <div id="header">
-    <a href="/">
-      <h1>ICG Master Project</h1>
-    </a>
+    <div class="logo">
+      <img
+        style="margin-right: 1em;"
+        id="logo-img"
+        alt="HCI Logo"
+        src="hci-logo.png"
+        width="70px"
+        height="70px" />
+      <div>
+        <a href="/">
+          <h1>ICG CS Master Project</h1>
+        </a>
+        <em style="padding-left: 1em; font-size: 1em">Long Bui</em>
+      </div>
+    </div>
     <div class="header__button-group">
       <button
         type="button"
