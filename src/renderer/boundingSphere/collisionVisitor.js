@@ -84,17 +84,6 @@ export class CollisionVisitor extends Visitor {
       this.minIntersection = intersection;
       this.intersectedNode = node;
     }
-    // const rayClip = new Vector(get(mousePosition).x, get(mousePosition).y, -1, 1);
-    // const rayEye = this.perspective.invert().mul(rayClip);
-    // rayEye.z = -1;
-    // rayEye.w = 0;
-    // const rayWorld = this.lookat.invert().mul(rayEye).normalised();
-    // const intersection = new Sphere(this.matrixStack.top().mul(node.boundingSphere.center),
-    //   node.boundingSphere.radius).intersect({ origin: this.cameraWorld, direction: rayWorld });
-    // if (intersection && intersection.closerThan(this.minIntersection)) {
-    //   this.minIntersection = intersection;
-    //   this.intersectedNode = node;
-    // }
   }
 
   /**
