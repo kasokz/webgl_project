@@ -30,7 +30,7 @@ vec4 specular(vec3 lightPos) {
 }
 
 void main(void){
-  gl_FragColor=vec4(ambient().xyz, 1.);
+  gl_FragColor = ambient();
   for(int i = 0; i < maxLights; i++) {
     if (i < lights) {
       gl_FragColor+=(diffuse(lightPositions[i]) + specular(lightPositions[i]));

@@ -35,6 +35,7 @@ export default class RayVisitor extends Visitor {
     super.render(rootNode);
     const shader = this.shader;
     shader.use();
+    shader.trySet(shader.getUniformVec3.bind(shader), "camera", this.cameraWorld);
     shader.trySet(shader.getUniformMatrix.bind(shader), "iMVP", (this.perspective.mul(this.lookat)).invert());
     phongConfiguration.loadIntoShader(this.shader);
     this.sphereCenters.forEach((center, i) => {
@@ -50,6 +51,7 @@ export default class RayVisitor extends Visitor {
     this.lightPositions.forEach((light, i) => {
       shader.trySet(shader.getUniformVec3.bind(shader), 'lightPositions[' + i + ']', new Vector(light.x, light.y, light.z))
     });
+    shader.trySet(shader.getUniformInt.bind(shader), "lights", this.lightPositions.length);
     this.draw();
   }
 

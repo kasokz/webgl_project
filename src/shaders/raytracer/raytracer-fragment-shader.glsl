@@ -12,20 +12,12 @@ struct Ray
   vec3    direction;
 };
 
-struct Material
-{
-  vec3  diffuse;
-  float   reflectance;
-};
-
-
 struct Hit
 {
   vec3    position;
   vec3    normal;
   float   t;
-
-  Material  material;
+  vec4 color;
 };
 
 struct Sphere
@@ -33,7 +25,7 @@ struct Sphere
   // coords + radius
   vec3    center;
   float   radius;
-  Material  material;
+  vec4 color;
 };
 
 
@@ -72,9 +64,13 @@ float intersectRaySphere(in Ray ray, in Sphere sphere)
   return -1.;
 }
 
-// the scene consists of 7 spheres, a ground plane an a light
+uniform vec3 lightPositions[8];
+const int maxLights = 8;
+uniform int lights;
+
 Sphere sphereObjects[7];
 const int maxSpheres = 64;
+uniform vec3 camera;
 uniform vec3 sphereCenters[64];
 uniform vec4 sphereColors[64];
 uniform float sphereRadii[64];
@@ -92,8 +88,7 @@ void initScene()
     if (i < spheres) {
       sphereObjects[i].center = sphereCenters[i];
       sphereObjects[i].radius = sphereRadii[i];
-      sphereObjects[i].material.diffuse = vec3(0.7,0.,0.);
-      sphereObjects[i].material.reflectance = kS;
+      sphereObjects[i].color = sphereColors[i];
     }
   }
 }
@@ -110,24 +105,18 @@ bool traceScene(in Ray ray, inout Hit hit)
     hit.t = t;
     hit.position = ray.origin + ray.direction * t;
     hit.normal = vec3(0,1,0);
-    hit.material.diffuse  = vec3(0.6);
-    hit.material.reflectance = 0.0;//05;
   }
 
-  // then check each of the seven sphers
   for (int i = 0; i < 7; ++i)
   {
     t = intersectRaySphere(ray, sphereObjects[i]);
-
-    // only keep this hit if it's closer (smaller t)
     if (t >= 0.0 && t <= hit.t)
     {
-      vec3 pos = ray.origin + ray.direction * t;;
+      vec3 pos = ray.origin + ray.direction * t;
       vec3 N = normalize(pos - sphereObjects[i].center);
-
       hit.t = t;
       hit.normal = N;
-      hit.material = sphereObjects[i].material;
+      hit.color = sphereObjects[i].color;
       hit.position = pos;
     }
   }
@@ -135,36 +124,33 @@ bool traceScene(in Ray ray, inout Hit hit)
   return hit.t < START_T;
 }
 
+vec4 diffuse(vec3 lightPos, vec3 hit, vec3 normal, vec4 color) {
+  float lambertian = max(dot(normalize(lightPos - hit), normal), .0);
+  return color * kD * lambertian;
+}
 
-// shades a given hit and returns the final color
-vec3 shadeHit(in Hit hit)
-{
-  vec3 color = hit.material.diffuse;
-  // ray to the light
-  vec3 L = normalize(light0 - hit.position);
-  // test for shadows
-  Ray r;
-  r.origin = hit.position + hit.normal * EPS;
-  r.direction = L;
-  // Phong shading with 0.2 min. ambient contribution.
-  float s = max(0.2, dot(L,hit.normal));
-  color *= s;
-  return color;
+vec4 specular(vec3 lightPos, vec3 hit, vec3 normal, vec4 color) {
+  vec3 l = normalize(lightPos - hit);
+  vec3 r = reflect(-l,normal);
+  vec3 v = normalize(camera - hit);
+  return color * kS * pow(max(dot(r,v),0.0), shininess);
 }
 
 void main()
 {
-  // create the primary ray
   Ray ray = initRay();
   initScene();
-  // the 'clear color' is the ray direction (useful for debugging)
-  vec3 color = ray.direction;
+  vec4 color = vec4(ray.direction, 1.0);
   Hit hit;
-  // trace the scene and see if we hit something
   if (traceScene(ray, hit))
   {
-    // if we do, shade the hit
-    color = shadeHit(hit);
+    color = kA * hit.color;
+    for(int i = 0; i < maxLights; i++) {
+      if (i < lights) {
+        color += (diffuse(lightPositions[i], hit.position, hit.normal, hit.color) +
+          specular(lightPositions[i], hit.position, hit.normal, hit.color));
+      }
+    }
   }
-  gl_FragColor = vec4(color, 1.0);
+  gl_FragColor = color;
 }
