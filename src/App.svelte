@@ -52,6 +52,13 @@
   let collisionSetupVisitor;
   let rayVisitor;
 
+  let averageFps;
+  let frames = 0;
+  let time = 0;
+  let fps = 0;
+  let framesLastSecond = 0;
+  let nextSecond = 1000;
+
   const toggleRenderer = () => {
     if (activeRenderer === rasterVisitor) {
       activeRenderer = rayVisitor;
@@ -100,9 +107,11 @@
 
     let lastTimestamp = performance.now();
     const animateFunc = timestamp => {
-      simulate(timestamp - lastTimestamp);
+      const deltaT = timestamp - lastTimestamp;
+      simulate(deltaT);
       activeRenderer.render($sceneGraph);
       collisionVisitor.render($sceneGraph);
+      updateFPS(deltaT);
       lastTimestamp = timestamp;
       window.requestAnimationFrame(animateFunc);
     };
@@ -118,6 +127,18 @@
   const handleKeyDown = event => {
     if (!$keysPressed.get(event.key)) {
       keysPressed.keydown(event.key);
+    }
+  };
+
+  const updateFPS = deltaT => {
+    frames++;
+    time += deltaT;
+    averageFps = (frames / (time / 1000)).toFixed(2);
+    framesLastSecond++;
+    if (time >= nextSecond) {
+      fps = framesLastSecond;
+      nextSecond = time + 1000;
+      framesLastSecond = 0;
     }
   };
 
@@ -250,10 +271,30 @@
     background-color: rgba(255, 166, 0, 0.904);
   }
 
-  canvas {
+  .main_content {
+    position: relative;
     width: 100%;
     height: 100%;
     grid-area: content;
+  }
+
+  .main_content__canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  .main_content__overlay {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-family: monospace;
+    padding: 1em;
+  }
+
+  .main_content__overlay > div {
+    margin: auto;
   }
 
   #sidebar {
@@ -366,14 +407,21 @@
       <PhongConfigurator />
     </div>
   </div>
-  <canvas
-    bind:this={canvas}
-    width="1920"
-    height="1080"
-    on:contextmenu={startFreeFlight}
-    on:mousemove={handleMouseMove}
-    on:mouseenter={toggleIntersectSearch}
-    on:mouseleave={toggleIntersectSearch}
-    on:mousedown={handleMouseDown}
-    on:mouseup={handleMouseUp} />
+  <div class="main_content">
+    <canvas
+      class="main_content__canvas"
+      bind:this={canvas}
+      width="1920"
+      height="1080"
+      on:contextmenu={startFreeFlight}
+      on:mousemove={handleMouseMove}
+      on:mouseenter={toggleIntersectSearch}
+      on:mouseleave={toggleIntersectSearch}
+      on:mousedown={handleMouseDown}
+      on:mouseup={handleMouseUp} />
+    <div class="main_content__overlay">
+      <div>FPS: {fps}</div>
+      <div>Average: {averageFps}</div>
+    </div>
+  </div>
 </div>
