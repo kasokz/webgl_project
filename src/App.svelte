@@ -260,6 +260,7 @@
     grid-template-areas:
       "header header header header sidebar"
       "content content content content sidebar";
+    overflow: hidden;
   }
 
   #header {
