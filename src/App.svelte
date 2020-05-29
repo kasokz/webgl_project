@@ -231,6 +231,8 @@
 
   const startFreeFlight = event => {
     event.preventDefault();
+    canvas.requestPointerLock = canvas.requestPointerLock ||
+                            canvas.mozRequestPointerLock;
     canvas.requestPointerLock();
     $animationNodes
       .filter(node => node instanceof FreeFlightNode)
