@@ -6,7 +6,7 @@ WebGL was the technology of choice, since it's supposed to be easier to get star
 In the past, I worked on a similar project in OpenGL and the learning curve was definitely higher.
 
 ## Demo
-Live demo can be seen under: [kasokz.github.com/webgl_project](kasokz.github.com/webgl_project)
+Live demo can be seen under: [https://kasokz.github.com/webgl_project](https://kasokz.github.com/webgl_project)
 Since I used Git LFS, the .obj assets cannot be loaded unfortunately, since only the LFS indices are returned.
 
 ## User Interface
