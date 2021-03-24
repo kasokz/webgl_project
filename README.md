@@ -8,7 +8,5 @@ In the past, I worked on a similar project in OpenGL and the learning curve was 
 ## Demo
 Live demo can be seen under: [https://webgl.long-bui.de](https://webgl.long-bui.de).
 
-Since I used Git LFS, the .obj assets cannot be loaded unfortunately, since only the LFS indices are returned.
-
 ## User Interface
 The user interface was mostly optional and was built using [Svelte](svelte.dev), which I really enjoy both for its concepts and performance.
